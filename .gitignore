@@ -18,3 +18,4 @@ cscope*
 /feeds/customer*
 /feeds/luci*
 /feeds.conf
+/package/feeds/customer
