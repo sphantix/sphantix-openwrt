@@ -6581,20 +6581,18 @@ INT	Show_MacTable_Proc(
 	/*PRTMP_RX_RING	pRxRing = &pAd->RxRing; */
 	UINT32 MaxWcidNum = MAX_LEN_OF_MAC_TABLE;
 	
-	printk("\n");
 	RTMP_IO_READ32(pAd, BKOFF_SLOT_CFG, &RegValue);
-	printk("BackOff Slot      : %s slot time, BKOFF_SLOT_CFG(0x1104) = 0x%08x\n", 
+	DBGPRINT(RT_DEBUG_TRACE,("BackOff Slot      : %s slot time, BKOFF_SLOT_CFG(0x1104) = 0x%08x\n", 
 			OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_SHORT_SLOT_INUSED) ? "short" : "long",
- 			RegValue);
+ 			RegValue));
 
 #ifdef DOT11_N_SUPPORT
-	printk("HT Operating Mode : %d\n", pAd->CommonCfg.AddHTInfo.AddHtInfo2.OperaionMode);
-	printk("\n");
+	DBGPRINT(RT_DEBUG_TRACE,("HT Operating Mode : %d\n", pAd->CommonCfg.AddHTInfo.AddHtInfo2.OperaionMode));
 #endif /* DOT11_N_SUPPORT */
 	
-	printk("\n%-19s%-4s%-4s%-4s%-4s%-8s%-7s%-7s%-7s%-10s%-6s%-6s%-6s%-6s%-7s%-7s\n",
+	DBGPRINT(RT_DEBUG_TRACE,("\n%-19s%-4s%-4s%-4s%-4s%-8s%-7s%-7s%-7s%-10s%-6s%-6s%-6s%-6s%-7s%-7s\n",
 		   "MAC", "AID", "BSS", "PSM", "WMM", "MIMOPS", "RSSI0", "RSSI1", 
-		   "RSSI2", "PhMd", "BW", "MCS", "SGI", "STBC", "Idle", "Rate");
+		   "RSSI2", "PhMd", "BW", "MCS", "SGI", "STBC", "Idle", "Rate"));
 	
 #ifdef MAC_REPEATER_SUPPORT
 	if (pAd->ApCfg.bMACRepeaterEn)
@@ -6649,15 +6647,13 @@ INT	Show_StaCount_Proc(
 	INT i;/*, QueIdx=0; */
     	UINT32 RegValue;
 	
-	printk("\n");
 	RTMP_IO_READ32(pAd, BKOFF_SLOT_CFG, &RegValue);
-	printk("BackOff Slot      : %s slot time, BKOFF_SLOT_CFG(0x1104) = 0x%08x\n", 
+	DBGPRINT(RT_DEBUG_TRACE,("BackOff Slot      : %s slot time, BKOFF_SLOT_CFG(0x1104) = 0x%08x\n", 
 			OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_SHORT_SLOT_INUSED) ? "short" : "long",
- 			RegValue);
+ 			RegValue));
 
 #ifdef DOT11_N_SUPPORT
-	printk("HT Operating Mode : %d\n", pAd->CommonCfg.AddHTInfo.AddHtInfo2.OperaionMode);
-	printk("\n");
+	DBGPRINT(RT_DEBUG_TRACE,("HT Operating Mode : %d\n", pAd->CommonCfg.AddHTInfo.AddHtInfo2.OperaionMode));
 #endif /* DOT11_N_SUPPORT */
 	
 	printk("\n%-19s%-4s%-12s%-12s%-12s%-12s\n",
@@ -12708,6 +12704,76 @@ INT RTMP_AP_IoctlHandle(
 			}
 		}
 			break;
+
+        case CMD_RTPRIV_IOCTL_AP_SIOCGIWAUTHMODE:
+            {
+                RT_CMD_AP_IOCTL_AUTHMODE *pAUTHMODE = (RT_CMD_AP_IOCTL_AUTHMODE *)pData;
+
+                pAUTHMODE->length =64;
+                char data[32]={0};
+                char crypto[32]={0};
+
+                switch(pAd->ApCfg.MBSSID[pAUTHMODE->apidx].AuthMode)
+                {
+                    case Ndis802_11AuthModeAutoSwitch:
+                        memcpy(data,"WEPAUTO",8);
+                            break;
+
+                    case Ndis802_11AuthModeOpen:
+                        memcpy(data,"OPEN",5);
+                            break;
+
+                    case Ndis802_11AuthModeShared:
+                        memcpy(data,"SHARED",7);
+                            break;
+
+                    case Ndis802_11AuthModeWPAPSK:
+                        memcpy(data,"WPAPSK",7);
+                            break;
+
+                    case Ndis802_11AuthModeWPA2PSK:
+                        memcpy(data,"WPA2PSK",8);
+                            break;
+
+                    case Ndis802_11AuthModeWPA1PSKWPA2PSK:
+                        memcpy(data,"WPAPSKWPA2PSK",14);
+                            break;
+
+                    default:
+                        break;
+                }
+
+                 switch(pAd->ApCfg.MBSSID[pAUTHMODE->apidx].WepStatus)
+                {
+                    case Ndis802_11WEPDisabled: 
+                        memcpy(crypto,"-NONE",6);
+                            break;
+
+                    case Ndis802_11WEPEnabled: 
+                        memcpy(crypto,"-WEP",5);
+                            break;
+
+                    case Ndis802_11Encryption2Enabled: 
+                        memcpy(crypto,"-TKIP",6);
+                            break;
+
+                    case Ndis802_11Encryption3Enabled: 
+                        memcpy(crypto,"-AES",5);
+                            break;
+
+                    case Ndis802_11Encryption4Enabled: 
+                        memcpy(crypto,"-TKIPAES",9);
+                            break;
+
+                    default: 
+                        break;
+
+                }
+
+                strcat(data,crypto);
+                strcpy(pAUTHMODE->pStr,data);
+            }
+            break;
 
 #ifdef MBSS_SUPPORT
 		case CMD_RTPRIV_IOCTL_MBSS_BEACON_UPDATE:

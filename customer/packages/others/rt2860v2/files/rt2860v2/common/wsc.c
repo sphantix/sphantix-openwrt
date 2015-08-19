@@ -65,6 +65,8 @@ extern int CFG_commit(int id);
 #define CFG_commit(a)   {}
 #endif /*__ECOS && BRANCH_ADV */
 
+#define WPS_PBC_NOT_MODIFY_KEY
+
 UINT8 WPS_DH_G_VALUE[1] = {0x02};
 UINT8 WPS_DH_P_VALUE[192] = 
 {
@@ -8956,7 +8958,14 @@ VOID	WscCreateProfileFromCfg(
 			}
 		}
 		else
+		{
+#ifdef WPS_PBC_NOT_MODIFY_KEY
+			memcpy(pCredential->Key, pWscControl->WpaPsk, pWscControl->WpaPskLen);
+            pCredential->KeyLength = pWscControl->WpaPskLen;
+#else
 			WscGenRandomKey(pAd, pWscControl, pCredential->Key, &pCredential->KeyLength);
+#endif
+		}
 	}
     else
 	{

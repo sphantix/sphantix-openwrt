@@ -1,4 +1,3 @@
-M
 /*
  ***************************************************************************
  * Ralink Tech Inc.
@@ -2033,9 +2032,9 @@ NDIS_STATUS	NICInitializeAsic(
 #ifdef RT6352
 		if (IS_RT6352(pAd))
 		{
-            csr &= ~0xFFF;
+			csr &= ~0xFFF;
             csr |= (MAX_AGGREGATION_SIZE);
-            csr |= 0x3000;
+			csr |= 0x3000;
 		}
 		else
 #endif /* RT6352 */

@@ -166,6 +166,7 @@ typedef enum _CMD_RTPRIV_IOCTL_AP {
 	CMD_RTPRIV_IOCTL_AP_SIOCGIWESSID,
 	CMD_RTPRIV_IOCTL_AP_SIOCGIWRATEQ,
 	CMD_RTPRIV_IOCTL_AP_SIOCSIWGENIE,
+    CMD_RTPRIV_IOCTL_AP_SIOCGIWAUTHMODE,
 
 	/* can not exceed 0x5000 */
 } CMD_RTPRIV_IOCTL_AP;
@@ -576,6 +577,14 @@ typedef struct __RT_CMD_AP_IOCTL_SSID {
 	OUT char *pSsidStr;
 	OUT INT32 length;
 } RT_CMD_AP_IOCTL_SSID;
+
+typedef struct __RT_CMD_AP_IOCTL_AUTHMODE {
+	IN ULONG priv_flags;
+	IN INT apidx;
+
+	OUT char *pStr;
+	OUT INT32 length;
+} RT_CMD_AP_IOCTL_AUTHMODE;
 
 typedef struct __RT_CMD_IOCTL_RATE {
 	IN ULONG priv_flags;

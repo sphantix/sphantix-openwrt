@@ -2003,6 +2003,7 @@ static NDIS_STATUS ATESTOP(
 			Now we recover it before we leave ATE mode.
 		*/
 		RTMPCancelTimer(&pATEInfo->PeriodicTimer, &Cancelled);
+		RTMPCancelTimer(&pAd->Mlme.PeriodicTimer, &Cancelled);
 		/* Init MLME periodic timer */
 		RTMPInitTimer(pAd, &pAd->Mlme.PeriodicTimer, GET_TIMER_FUNCTION(MlmePeriodicExec), pAd, TRUE);
 		/* Set MLME periodic timer */
