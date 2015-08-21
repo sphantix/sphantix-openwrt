@@ -53,7 +53,7 @@ printdb:
 prepare: $(target/stamp-compile)
 
 clean: FORCE
-	rm -rf $(BUILD_DIR) $(BIN_DIR) $(BUILD_LOG_DIR)
+	rm -rf $(BUILD_DIR) $(BIN_DIR) $(BUILD_LOG_DIR) $(LAST_PROJECT_COOKIE)
 
 dirclean: clean
 	rm -rf $(STAGING_DIR) $(STAGING_DIR_HOST) $(STAGING_DIR_TOOLCHAIN) $(TOOLCHAIN_DIR) $(BUILD_DIR_HOST) $(BUILD_DIR_TOOLCHAIN)
