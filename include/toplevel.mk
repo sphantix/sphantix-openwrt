@@ -64,18 +64,18 @@ ULIMIT_FIX=_limit=`ulimit -n`; [ "$$_limit" = "unlimited" -o "$$_limit" -ge 1024
 # Add by hangxu 2015/8/3
 project_defined_check: 
 	@if [ "$(PROJECT)" = "" ]; then \
-          echo You need to specify build project name from $(CUSTOMER_PROFILE_DIR) using 'make PROJECT=<project name>...'; exit 1; \
+          echo You need to specify build project name from $(CUSTOMER_PROJECT_DIR) using 'make PROJECT=<project name>...'; exit 1; \
 	fi
 
 # See LAST_PROJECT at the top of this file.
 project_prepare: project_defined_check
 	@if [ "$(LAST_PROJECT)" != "$(PROJECT)" ]; then \
-		if [ "$(PROJECT)" = "$(findstring $(PROJECT),$(shell ls $(CUSTOMER_PROFILE_DIR)))" ]; then \
+		if [ "$(PROJECT)" = "$(findstring $(PROJECT),$(shell ls $(CUSTOMER_PROJECT_DIR)))" ]; then \
 			echo "The specified project = $(PROJECT), differs from the last one built = $(LAST_PROJECT)."; \
 			echo "Re-install target project before compiling."; \
 			rm -f $(TOPDIR)/.config.old; \
-			cp -fpR $(CUSTOMER_PROFILE_DIR)/$(PROJECT)/.config $(TOPDIR)/.config; \
-			cp -fpR $(CUSTOMER_PROFILE_DIR)/$(PROJECT)/target/* $(TOPDIR)/target/; \
+			cp -fpR $(CUSTOMER_PROJECT_DIR)/$(PROJECT)/.config $(TOPDIR)/.config; \
+			cp -fpR $(CUSTOMER_PROJECT_DIR)/$(PROJECT)/target/* $(TOPDIR)/target/; \
 			cp -fpR $(CUSTOMER_COMMON_DIR)/base-files/* $(TOPDIR)/package/base-files/; \
 			echo "$(PROJECT)" > $(LAST_PROJECT_COOKIE); \
 		else \
