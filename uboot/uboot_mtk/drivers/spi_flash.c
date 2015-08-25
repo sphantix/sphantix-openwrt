@@ -405,6 +405,32 @@ static int raspi_cmd(const u8 cmd, const u32 addr, const u8 mode, u8 *buf, const
 }
 #endif
 
+/*
+ * Set write enable latch with Write Enable command.
+ * Returns negative if error occurred.
+ */
+static inline int raspi_write_enable(void)
+{
+	u8 code = OPCODE_WREN;
+
+#ifdef COMMAND_MODE
+	raspi_cmd(code, 0, 0, 0, 0, 0, 0);	
+#else
+	return spic_write(&code, 1, NULL, 0);
+#endif
+}
+
+static inline int raspi_write_disable(void)
+{
+	u8 code = OPCODE_WRDI;
+
+#ifdef COMMAND_MODE
+	raspi_cmd(code, 0, 0, 0, 0, 0, 0);
+#else
+	return spic_write(&code, 1, NULL, 0);
+#endif
+}
+
 #if defined (RD_MODE_QUAD)
 static int raspi_set_quad()
 {
@@ -528,8 +554,6 @@ static int raspi_write_rg(u8 *val, u8 opcode)
 	return 0;
 }
 #endif
-
-
 
 /*
  * read status register
@@ -708,34 +732,6 @@ int raspi_4byte_mode(int enable)
 	return 0;
 }
 #endif
-
-
-
-/*
- * Set write enable latch with Write Enable command.
- * Returns negative if error occurred.
- */
-static inline int raspi_write_enable(void)
-{
-	u8 code = OPCODE_WREN;
-
-#ifdef COMMAND_MODE
-	raspi_cmd(code, 0, 0, 0, 0, 0, 0);	
-#else
-	return spic_write(&code, 1, NULL, 0);
-#endif
-}
-
-static inline int raspi_write_disable(void)
-{
-	u8 code = OPCODE_WRDI;
-
-#ifdef COMMAND_MODE
-	raspi_cmd(code, 0, 0, 0, 0, 0, 0);
-#else
-	return spic_write(&code, 1, NULL, 0);
-#endif
-}
 
 /*
  * Set all sectors (global) unprotected if they are protected.
