@@ -4,6 +4,7 @@
 *.bin
 *.img
 *.srec
+/.config.old
 /autoconf.h
 /u-boot
 /tools/mkimage
