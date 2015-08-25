@@ -1180,7 +1180,7 @@ int check_image_validation(void)
 	if ((strcmp(stable, "1") != 0) && (simple_strtoul(try, NULL, 10)) > MAX_TRY_TIMES 
 		&& (broken1 == 0)) {
 		printf("\nImage1 is not stable and try counter > %X. Take it as a broken image.", MAX_TRY_TIMES);
-		broken1 = 1;
+		/*broken1 = 1;*/
 	}
 
 	printf("\nImage1: %s Image2: %s\n", broken1 ? "Broken" : "OK", broken2 ? "Broken" : "OK");
