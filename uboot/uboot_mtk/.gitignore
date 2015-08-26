@@ -1,0 +1,11 @@
+*.a
+*.depend
+*.map
+*.bin
+*.img
+*.srec
+/.config.old
+/autoconf.h
+/u-boot
+/tools/mkimage
+/scripts/lxdialog/lxdialog

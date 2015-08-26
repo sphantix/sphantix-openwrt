@@ -1,0 +1,5 @@
+#ignore for MT7620A PROFILE
+/linux/ramips/dts/MT7620a_16M.dts
+/linux/ramips/dts/MT7620a_32M.dts
+/linux/ramips/base-files/etc/shadow
+/linux/ramips/base-files/etc/wlan/
