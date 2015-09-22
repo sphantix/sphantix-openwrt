@@ -30,6 +30,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+/* Add by hyman 2015/9/22 */
+#include <ctype.h>
+/* Add by hyman End */
 #include <syslog.h>
 #include <errno.h>
 #include <pthread.h>
@@ -382,3 +385,22 @@ rand16(void)
      * ignore that one. */
     return ((unsigned short)(rand() >> 15));
 }
+
+/* Add by hyman 2015/9/22 */
+void trim(char *s)
+{
+    int i, j;
+
+    for(i = strlen(s)-1; i >= 0 && isspace(s[i]); i--);
+    s[i+1] = '\0';
+
+    for(i = 0; isspace(s[i]); i++);
+
+    if(i > 0)
+    {
+        j = 0;
+        while(s[i]) s[j++] = s[i++];
+        s[j] = '\0';
+    }
+}
+/* Add by hyman End */

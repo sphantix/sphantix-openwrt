@@ -71,6 +71,7 @@ usage(void)
     fprintf(stdout, "  status            Obtain the status of wifidog\n");
     fprintf(stdout, "  stop              Stop the running wifidog\n");
     fprintf(stdout, "  restart           Re-start the running wifidog (without disconnecting active users!)\n");
+    fprintf(stdout, "  reload            Re-load the config file without restarting wifidog (without disconnecting active users!)\n");
     fprintf(stdout, "\n");
 }
 
@@ -136,6 +137,10 @@ parse_commandline(int argc, char **argv)
         config.param = strdup(*(argv + optind + 1));
     } else if (strcmp(*(argv + optind), "restart") == 0) {
         config.command = WDCTL_RESTART;
+        /* Add by hyman 2015/9/21 */
+    } else if (strcmp(*(argv + optind), "reload") == 0) {
+        config.command = WDCTL_RELOAD;
+        /* Add by hyman End */
     } else {
         fprintf(stderr, "wdctl: Error: Invalid command \"%s\"\n", *(argv + optind));
         usage();
@@ -291,6 +296,31 @@ wdctl_restart(void)
     close(sock);
 }
 
+/* Add by hyman 2015/9/21 */
+static void
+wdctl_reload(void)
+{
+    int sock;
+    char buffer[4096];
+    char request[16];
+    ssize_t len;
+
+    sock = connect_to_server(config.socket);
+
+    strncpy(request, "reload\r\n\r\n", 15);
+
+    send_request(sock, request);
+
+    while ((len = read(sock, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[len] = '\0';
+        fprintf(stdout, "%s", buffer);
+    }
+
+    shutdown(sock, 2);
+    close(sock);
+}
+/* Add by hyman End */
+
 int
 main(int argc, char **argv)
 {
@@ -315,6 +345,12 @@ main(int argc, char **argv)
     case WDCTL_RESTART:
         wdctl_restart();
         break;
+
+    /* Add by hyman 2015/9/21 */
+    case WDCTL_RELOAD:
+        wdctl_reload();
+        break;
+    /* Add by hyman End */
 
     default:
         /* XXX NEVER REACHED */

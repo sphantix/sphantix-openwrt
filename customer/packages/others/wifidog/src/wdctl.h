@@ -34,6 +34,9 @@
 #define WDCTL_STOP		2
 #define WDCTL_KILL		3
 #define WDCTL_RESTART	4
+/* Add by hyman 2015/9/21 */
+#define WDCTL_RELOAD    5
+/* Add by hyman End */
 
 typedef struct {
     char *socket;

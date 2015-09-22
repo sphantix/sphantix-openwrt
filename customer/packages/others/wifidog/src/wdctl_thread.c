@@ -63,6 +63,9 @@ static void wdctl_status(int);
 static void wdctl_stop(int);
 static void wdctl_reset(int, const char *);
 static void wdctl_restart(int);
+/* Add by hyman 2015/9/21 */
+static void wdctl_reload(int);
+/* Add by hyman End */
 
 static int wdctl_socket_server;
 
@@ -208,6 +211,10 @@ thread_wdctl_handler(void *arg)
         wdctl_reset(fd, (request + 6));
     } else if (strncmp(request, "restart", 7) == 0) {
         wdctl_restart(fd);
+        /* Add by hyman 2015/9/21 */
+    } else if (strncmp(request, "reload", 6) == 0) {
+        wdctl_reload(fd);
+        /* Add by hyman End */
     } else {
         debug(LOG_ERR, "Request was not understood!");
     }
@@ -384,3 +391,29 @@ wdctl_reset(int fd, const char *arg)
 
     debug(LOG_DEBUG, "Exiting wdctl_reset...");
 }
+
+/* Add by hyman 2015/9/21 */
+static void
+wdctl_reload(int fd)
+{
+    s_config *config = config_get_config();
+
+    debug(LOG_DEBUG, "Entering wdctl_reload...");
+
+    /* Initialize the config */
+    config_read(config->configfile);
+    config_validate();
+
+    /* Reset the firewall */
+    fw_destroy();
+    /* Then initialize it */
+    if (!fw_init()) {
+        debug(LOG_ERR, "FATAL: Failed to initialize firewall");
+        exit(1);
+    }
+
+    write_to_socket(fd, "OK", 2);
+
+    debug(LOG_DEBUG, "Exiting wdctl_reload...");
+}
+/* Add by hyman End */
