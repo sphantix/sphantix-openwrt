@@ -30,9 +30,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-/* Add by hyman 2015/9/22 */
+/* Add by sphantix 2015/9/22 */
 #include <ctype.h>
-/* Add by hyman End */
+/* Add by sphantix End */
 #include <syslog.h>
 #include <errno.h>
 #include <pthread.h>
@@ -386,7 +386,7 @@ rand16(void)
     return ((unsigned short)(rand() >> 15));
 }
 
-/* Add by hyman 2015/9/22 */
+/* Add by sphantix 2015/9/22 */
 void trim(char *s)
 {
     int i, j;
@@ -403,4 +403,4 @@ void trim(char *s)
         s[j] = '\0';
     }
 }
-/* Add by hyman End */
+/* Add by sphantix End */

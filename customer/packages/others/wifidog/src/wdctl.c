@@ -137,10 +137,10 @@ parse_commandline(int argc, char **argv)
         config.param = strdup(*(argv + optind + 1));
     } else if (strcmp(*(argv + optind), "restart") == 0) {
         config.command = WDCTL_RESTART;
-        /* Add by hyman 2015/9/21 */
+        /* Add by sphantix 2015/9/21 */
     } else if (strcmp(*(argv + optind), "reload") == 0) {
         config.command = WDCTL_RELOAD;
-        /* Add by hyman End */
+        /* Add by sphantix End */
     } else {
         fprintf(stderr, "wdctl: Error: Invalid command \"%s\"\n", *(argv + optind));
         usage();
@@ -296,7 +296,7 @@ wdctl_restart(void)
     close(sock);
 }
 
-/* Add by hyman 2015/9/21 */
+/* Add by sphantix 2015/9/21 */
 static void
 wdctl_reload(void)
 {
@@ -319,7 +319,7 @@ wdctl_reload(void)
     shutdown(sock, 2);
     close(sock);
 }
-/* Add by hyman End */
+/* Add by sphantix End */
 
 int
 main(int argc, char **argv)
@@ -346,11 +346,11 @@ main(int argc, char **argv)
         wdctl_restart();
         break;
 
-    /* Add by hyman 2015/9/21 */
+    /* Add by sphantix 2015/9/21 */
     case WDCTL_RELOAD:
         wdctl_reload();
         break;
-    /* Add by hyman End */
+    /* Add by sphantix End */
 
     default:
         /* XXX NEVER REACHED */

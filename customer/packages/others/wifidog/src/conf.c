@@ -362,7 +362,7 @@ parse_auth_server(FILE * file, const char *filename, int *linenum)
         return;
     }
 
-    /* Add by hyman 2015/9/22 */
+    /* Add by sphantix 2015/9/22 */
     /* skip the host if it is already in our auth_servers list */
     for (tmp = config.auth_servers; tmp != NULL; tmp = tmp->next)
     {
@@ -377,7 +377,7 @@ parse_auth_server(FILE * file, const char *filename, int *linenum)
             return;
         }
     }
-    /* Add by hyman End */
+    /* Add by sphantix End */
 
     debug(LOG_DEBUG, "Adding %s:%d (SSL: %d) %s to the auth server list", host, http_port, ssl_port, path);
 
@@ -860,7 +860,7 @@ parse_trusted_mac_list(const char *ptr)
     /* strsep modifies original, so let's make a copy */
     ptrcopy = safe_strdup(ptr);
 
-    /* Modified by hyman 2015/9/22 */
+    /* Modified by sphantix 2015/9/22 */
     trim(ptrcopy);
 
     //remove original TrustedMACList
@@ -932,7 +932,7 @@ out:
     free(ptrcopy);
     free(mac);
 
-    /* Modified by hyman End */
+    /* Modified by sphantix End */
 }
 
 /** Verifies if the configuration is complete and valid.  Terminates the program if it isn't */

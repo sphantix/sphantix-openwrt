@@ -58,9 +58,9 @@ void close_icmp_socket(void);
 /** @brief ICMP Ping an IP */
 void icmp_ping(const char *);
 
-/* Add by hyman 2015/9/22 */
+/* Add by sphantix 2015/9/22 */
 /** @brief Cut space before and after string */
 void trim( char *s );
-/* Add by hyman End */
+/* Add by sphantix End */
 
 #endif                          /* _UTIL_H_ */
