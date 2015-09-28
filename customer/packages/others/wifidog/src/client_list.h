@@ -107,6 +107,16 @@ void client_list_remove(t_client *);
 /** @brief Free memory associated with a client */
 void client_free_node(t_client *);
 
+/* Add by sphantix 2015/9/25 */
+/** @brief update current authorized clients file  */
+void client_list_file_update();
+
+/** @brief get authorized clients from file  */
+void client_list_get_from_file();
+
+#define AUTHORIZED_CLINETS_FILE  "/var/wifidog_clients"
+/* Add by sphantix End */
+
 #define LOCK_CLIENT_LIST() do { \
 	debug(LOG_DEBUG, "Locking client list"); \
 	pthread_mutex_lock(&client_list_mutex); \

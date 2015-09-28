@@ -7,7 +7,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=wifidog
+PKG_NAME:=wifidog_sphantix
 PKG_VERSION:=20130917
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
@@ -22,7 +22,7 @@ PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/wifidog
+define Package/wifidog_sphantix
   SUBMENU:=Captive Portals
   SECTION:=net
   CATEGORY:=Network
@@ -31,14 +31,14 @@ define Package/wifidog
   URL:=http://www.wifidog.org
 endef
 
-define Package/wifidog/description
+define Package/wifidog_sphantix/description
 	The Wifidog project is a complete and embeddable captive
 	portal solution for wireless community groups or individuals
 	who wish to open a free Hotspot while still preventing abuse
 	of their Internet connection.
 endef
 
-define Package/wifidog/conffiles
+define Package/wifidog_sphantix/conffiles
 /etc/wifidog.conf
 endef
 
@@ -47,7 +47,7 @@ define Build/Prepare
 	$(CP) -rf ./* $(PKG_BUILD_DIR)
 endef
 
-define Package/wifidog/install
+define Package/wifidog_sphantix/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/init.d/wifidog $(1)/usr/bin/wifidog-init
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/wifidog $(1)/usr/bin/
@@ -61,4 +61,4 @@ define Package/wifidog/install
 	$(INSTALL_BIN) ./files/wifidog.init $(1)/etc/init.d/wifidog
 endef
 
-$(eval $(call BuildPackage,wifidog))
+$(eval $(call BuildPackage,wifidog_sphantix))

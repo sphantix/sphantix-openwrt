@@ -411,6 +411,13 @@ main_loop(void)
         exit(1);
     }
 
+    /* Added by sphantix 2015/9/28 */
+    if (client_get_first_client())
+    {
+        fw_sync_with_authserver();
+    }
+    /* Added by sphantix End */
+
     /* Start clean up thread */
     result = pthread_create(&tid_fw_counter, NULL, (void *)thread_client_timeout_check, NULL);
     if (result != 0) {

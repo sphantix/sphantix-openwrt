@@ -86,6 +86,11 @@ void
 client_list_init(void)
 {
     firstclient = NULL;
+    /* Add by sphantix 2015/9/25 */
+    LOCK_CLIENT_LIST();
+    client_list_get_from_file();
+    UNLOCK_CLIENT_LIST();
+    /* Add by sphantix End*/
 }
 
 /** Insert client at head of list. Lock should be held when calling this!
@@ -129,6 +134,10 @@ client_list_add(const char *ip, const char *mac, const char *token)
     client_list_insert_client(curclient);
 
     debug(LOG_INFO, "Added a new client to linked list: IP: %s Token: %s", ip, token);
+
+    /* Add by sphantix 2015/9/25 */
+    client_list_file_update();
+    /* Add by sphantix End */
 
     return curclient;
 }
@@ -349,6 +358,10 @@ client_list_delete(t_client * client)
 {
     client_list_remove(client);
     client_free_node(client);
+
+    /* Add by sphantix 2015/9/25 */
+    client_list_file_update();
+    /* Add by sphantix End */
 }
 
 /**
@@ -380,3 +393,74 @@ client_list_remove(t_client * client)
         }
     }
 }
+
+/* Add by sphantix 2015/9/25 */
+void client_list_file_update()
+{
+    t_client *client, *worklist;
+    FILE *fp;
+
+    if (firstclient != NULL) 
+    {
+        if((fp = fopen(AUTHORIZED_CLINETS_FILE, "w")) != NULL)
+        {
+            client_list_dup(&worklist);
+
+            for (client = worklist; client != NULL; client = client->next) 
+            {
+                fprintf(fp, "%s|%s|%s|%d|%llu|%llu|%lu\n", client->ip, client->mac, client->token, client->fw_connection_state, client->counters.incoming, client->counters.outgoing, (unsigned long)client->counters.last_updated);
+            }
+            fflush(fp);
+            fclose(fp);
+            client_list_destroy(worklist);
+        }
+    }
+    return;
+}
+
+void client_list_get_from_file()
+{
+    FILE *fp;
+    t_client *curclient;
+    s_config *config = config_get_config();
+    int fw_connection_state;
+    unsigned long last_updated;
+    unsigned long time_last = (config->checkinterval * config->clienttimeout);
+    unsigned long long incoming;
+    unsigned long long outgoing;
+    char ip[20];
+    char mac[20];
+    char token[256];
+
+    if(!access(AUTHORIZED_CLINETS_FILE, R_OK))
+    {
+        if((fp = fopen(AUTHORIZED_CLINETS_FILE, "r")) != NULL)
+        {
+            while(!feof(fp))
+            {
+                if(fscanf(fp, "%[^|]|%[^|]|%[^|]|%d|%llu|%llu|%lu\n", ip, mac, token, &fw_connection_state, &incoming, &outgoing, &last_updated) != -1)
+                {
+                    time_t current_time = time(NULL);
+                    if (last_updated + time_last > current_time)
+                    {
+                        //create new clilent
+                        curclient = client_get_new();
+                        curclient->ip = safe_strdup(ip);
+                        curclient->mac = safe_strdup(mac);
+                        curclient->token = safe_strdup(token);
+                        curclient->fw_connection_state = fw_connection_state;
+                        curclient->counters.incoming = incoming;
+                        curclient->counters.outgoing = outgoing;
+                        curclient->counters.incoming_history = curclient->counters.outgoing_history = 0;
+                        curclient->counters.last_updated = (time_t)last_updated;
+
+                        client_list_insert_client(curclient);
+                    }
+                }
+            }
+            fclose(fp);
+        }
+    }
+    return;
+}
+/* Add by sphantix End */

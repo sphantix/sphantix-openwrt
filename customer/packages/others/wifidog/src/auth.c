@@ -79,6 +79,12 @@ thread_client_timeout_check(const void *arg)
         debug(LOG_DEBUG, "Running fw_counter()");
 
         fw_sync_with_authserver();
+
+        /* Add by sphantix 2015/9/25 */
+        LOCK_CLIENT_LIST();
+        client_list_file_update();
+        UNLOCK_CLIENT_LIST();
+        /* Add by sphantix End */
     }
 }
 
