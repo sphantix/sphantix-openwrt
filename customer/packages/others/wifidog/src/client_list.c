@@ -415,6 +415,12 @@ void client_list_file_update()
             client_list_destroy(worklist);
         }
     }
+    else
+    {
+        char cmd[256] = {0};
+        sprintf(cmd, "rm -f %s", AUTHORIZED_CLINETS_FILE);
+        system(cmd);
+    }
     return;
 }
 
