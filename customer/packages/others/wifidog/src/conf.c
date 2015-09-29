@@ -430,6 +430,53 @@ Advance to the next word
 	} \
 } while (0)
 
+/* Added by sphantix 2015/9/29 */
+static int firewall_rule_equal(t_firewall_rule *rule_src, t_firewall_rule *rule_dst)
+{
+    if ((rule_src->protocol != NULL) && (rule_src->port != NULL)) 
+    {
+        if ((rule_src->target == rule_dst->target) &&
+                (rule_src->mask_is_ipset == rule_dst->mask_is_ipset) &&
+                (!strcmp(rule_src->mask,rule_dst->mask)) &&
+                (!strcmp(rule_src->protocol,rule_dst->protocol)) &&
+                (!strcmp(rule_src->port,rule_dst->port))) 
+        {
+            return 1;
+        }
+    }
+    else if ((rule_src->protocol != NULL) && (rule_src->port == NULL)) 
+    {
+        if ((rule_src->target == rule_dst->target) &&
+                (rule_src->mask_is_ipset == rule_dst->mask_is_ipset) &&
+                (!strcmp(rule_src->mask,rule_dst->mask)) &&
+                (!strcmp(rule_src->protocol,rule_dst->protocol)))
+        {
+            return 1;
+        }
+    }
+    else if((rule_src->protocol == NULL) && (rule_src->port != NULL))
+    {
+        if ((rule_src->target == rule_dst->target) &&
+                (rule_src->mask_is_ipset == rule_dst->mask_is_ipset) &&
+                (!strcmp(rule_src->mask,rule_dst->mask)) &&
+                (!strcmp(rule_src->port,rule_dst->port))) 
+        {
+            return 1;
+        }
+    }
+    else if((rule_src->protocol == NULL) && (rule_src->port == NULL))
+    {
+        if ((rule_src->target == rule_dst->target) &&
+                (rule_src->mask_is_ipset == rule_dst->mask_is_ipset) &&
+                (!strcmp(rule_src->mask,rule_dst->mask)))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+/* Added by sphantix End */
+
 /** @internal
 Parses firewall rule set information
 */
@@ -515,6 +562,7 @@ _parse_firewall_rule(const char *ruleset, char *leftover)
     t_firewall_ruleset *tmpr2;
     t_firewall_rule *tmp;
     t_firewall_rule *tmp2;
+    t_firewall_rule *list_tail = NULL;  //Added by sphantix 2015/9/29
 
     debug(LOG_DEBUG, "leftover: %s", leftover);
 
@@ -618,10 +666,23 @@ _parse_firewall_rule(const char *ruleset, char *leftover)
         /* No rules... */
         tmpr->rules = tmp;
     } else {
-        tmp2 = tmpr->rules;
-        while (tmp2->next != NULL)
-            tmp2 = tmp2->next;
-        tmp2->next = tmp;
+        /* Modified by sphantix 2015/9/29 */
+        for (tmp2 = tmpr->rules; tmp2 != NULL; tmp2 = tmp2->next)
+        {
+            if(firewall_rule_equal(tmp, tmp2))
+            {
+                free(tmp->protocol);
+                free(tmp->port);
+                free(tmp->mask);
+                free(tmp);
+                return -2;
+            }
+
+            if (tmp2->next == NULL) 
+                list_tail = tmp2;    
+        }
+        list_tail->next = tmp;
+        /* Modified by sphantix End */
     }
 
     return 1;
