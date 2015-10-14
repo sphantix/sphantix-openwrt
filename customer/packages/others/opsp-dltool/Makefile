@@ -47,6 +47,7 @@ r=`grep '/usr/bin/opsp-dltool' /etc/crontabs/root`
 if [ -z "$$r" ]; then
 echo '*/1 * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root
 fi
+/etc/init.d/cron restart
 exit 0
 endef
 
