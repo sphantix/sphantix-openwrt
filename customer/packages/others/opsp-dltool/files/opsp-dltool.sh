@@ -4,8 +4,8 @@ version='1.0'
 . /lib/functions/network.sh
 . /usr/share/libubox/jshn.sh
 
-server='192.168.3.46'
-port='9004'
+server='opsp.hi-wifi.cn'
+port='80'
 path='/var'
 
 network_get_mac() {
