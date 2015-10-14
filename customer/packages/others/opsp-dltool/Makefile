@@ -45,7 +45,7 @@ define Package/$(PKG_NAME)/postinst
 touch /etc/crontabs/root
 r=`grep '/usr/bin/opsp-dltool' /etc/crontabs/root`
 if [ -z "$$r" ]; then
-echo '*/1 * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root
+echo '* * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root
 fi
 /etc/init.d/cron restart
 exit 0

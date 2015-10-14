@@ -36,7 +36,7 @@ if [ -n "$url" ]; then
     ipk_name=`echo $url | awk -F '/' '{print $NF}'`
     rm -rf $path/$ipk_name
     wget -q -P $path $url
-    opkg install $ipk_name
+    opkg install $path/$ipk_name
 else
     echo 'error: url is empty'
     exit 1
