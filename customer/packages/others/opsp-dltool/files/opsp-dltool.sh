@@ -30,14 +30,28 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-json_get_var url url
+json_select urls 
+if [ $? -ne 0 ]; then
+    echo 'error: json_select error'
+    exit 1
+fi
+local i=1
+urls=''
+while json_get_type type $i && [ "$type" = string ]; do
+    json_get_var tmp "$((i++))"
+    urls=`echo $urls $tmp`
+done
+echo "urls: "
+echo $urls
 
-if [ -n "$url" ]; then
-    ipk_name=`echo $url | awk -F '/' '{print $NF}'`
-    rm -rf $path/$ipk_name
-    wget -q -P $path $url
-    opkg install $path/$ipk_name
+if [ -n "$urls" ]; then
+    for url in $urls; do
+        ipk_name=`echo $url | awk -F '/' '{print $NF}'`
+        rm -rf $path/$ipk_name
+        wget -q -P $path $url
+        opkg install $path/$ipk_name
+    done
 else
-    echo 'error: url is empty'
+    echo 'error: urls is empty'
     exit 1
 fi
