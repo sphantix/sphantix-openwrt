@@ -20,7 +20,7 @@ network_get_mac() {
 lan_mac=`network_get_mac lan`
 arch=`opkg print-architecture | sed -n '3p' | awk '{print $2}'`
 cpuinfo=`cat /proc/cpuinfo | grep '^system type' | awk '{print $4" "$5}'`
-kernel_version=`uname -r`
+kernel_version=`opkg info kernel | grep "Version:" | awk '{print $NF}'`
 
 r=`curl -s "$server":"$port"/ap/info/report/"$lan_mac"/"$arch"/"${cpuinfo// /%20}"/"$kernel_version"`
 
@@ -49,7 +49,12 @@ if [ -n "$urls" ]; then
         ipk_name=`echo $url | awk -F '/' '{print $NF}'`
         rm -rf $path/$ipk_name
         wget -q -P $path $url
-        opkg install $path/$ipk_name
+        if [ $? -ne 0 ]; then
+            echo "wget error!"
+            exit 1
+        else
+            opkg install $path/$ipk_name
+        fi
     done
 else
     echo 'error: urls is empty'
