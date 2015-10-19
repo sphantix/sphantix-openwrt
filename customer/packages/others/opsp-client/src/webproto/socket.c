@@ -10,43 +10,54 @@
  * 
  ************************************************************************/
 
+#include <libsol-util/utl_logging.h>
+#include <libsol-util/utl_memory.h>
+#include "socket.h"
+
+void socket_init()
+{
+   utlLog_debug("ENTER");
+}
+
+sSockCtx *socket_new_ctx(int fd, eSockType type)
+{
+   sSockCtx *pc;
+
+   pc = (sSockCtx *)utlMem_alloc(sizeof(sSockCtx), ALLOC_ZEROIZE);
+   pc->post_type = eNormal;
+   pc->sock_type = type;
+   pc->fd = fd;
+
+   return pc;
+}
+
 /* blocking read */
-int tcp_read_wait(sock_ctx *pc, char *ptr, int nbytes)
+int tcp_read_wait(sSockCtx *sc, char *ptr, int nbytes)
 {
     int nread=0;
     int flags, bflags;
 
     /* turn on synchroneous I/O, this call will block. */
     {
-        flags = (long) fcntl(pc->fd, F_GETFL);
+        flags = (long) fcntl(sc->fd, F_GETFL);
         bflags = flags & ~O_NONBLOCK; /* clear non-block flag, i.e. block */
-        fcntl(pc->fd, F_SETFL, bflags);
+        fcntl(sc->fd, F_SETFL, bflags);
     }
 
     errno = 0;
-    switch (pc->type) {
-        case iNormal:
-            nread = read(pc->fd, ptr, nbytes);
+    switch (sc->type) {
+        case Normal:
+            nread = read(sc->fd, ptr, nbytes);
             break;
-#ifdef USE_SSL
-        case iSsl:
-#ifdef DEBUGSSL
-            utlLog_debug("%s read_SSL(%d, lth=%d)", getticks(),pc->fd, nbytes);
-            utlLog_debug(" result=%d", nread = SSL_read(pc->ssl, (void *) ptr, nbytes));
-#else
-            nread = SSL_read(pc->ssl, (void *) ptr, nbytes);
-#endif
-            break;
-#endif
         default:
-            utlLog_error("Impossible error; readn() illegal ProtoCtx type (%d)", pc->type);
+            utlLog_error("Impossible error; readn() illegal ProtoCtx type (%d)", sc->type);
             break;
     }
     if (nread > nbytes) {
         utlLog_error("proto_READ of %d returned %d", nbytes, nread);
     }
 
-    fcntl(pc->fd, F_SETFL, flags); /* remove blocking flags */
+    fcntl(sc->fd, F_SETFL, flags); /* remove blocking flags */
 
     return nread;
 }
@@ -74,7 +85,7 @@ int read_timeout(int socket, int time_out_sec)
     // returns -1 on error, otherwise there is data on the port ready to read
 }
 
-int tcp_readn(sock_ctx *sc, char *ptr, int nbytes)
+int tcp_readn(sSockCtx *sc, char *ptr, int nbytes)
 {
     int nleft, nread=0;
     int errnoval;
@@ -84,29 +95,18 @@ int tcp_readn(sock_ctx *sc, char *ptr, int nbytes)
     nleft = nbytes;
     while (nleft > 0) {
         errno =0;
-        switch (pc->type) {
-            case iNormal:
-                if (read_timeout(pc->fd, 30) <= 0) 
+        switch (sc->type) {
+            case Normal:
+                if (read_timeout(sc->fd, 30) <= 0) 
                 {
                     utlLog_error("read packet timeout");
                     return -99; //timeout!!!
                 }                   
 
-                nread = read(pc->fd, ptr, nleft);
+                nread = read(sc->fd, ptr, nleft);
                 break;
-#ifdef USE_SSL
-            case iSsl:
-#ifdef DEBUGSSL
-                utlLog_debug("%s SSL_read(%d, lth=%d)", getticks(),pc->fd, nleft);
-                nread = SSL_read(pc->ssl, (void *) ptr, nleft);
-                utlLog_debug(" result=%d", nread);
-#else
-                nread = SSL_read(pc->ssl, (void *) ptr, nleft);
-#endif
-                break;
-#endif
             default:
-                utlLog_error("Impossible error; readn() illegal ProtoCtx type (%d)", pc->type);
+                utlLog_error("Impossible error; readn() illegal ProtoCtx type (%d)", sc->type);
                 break;
         }
 
@@ -117,7 +117,7 @@ int tcp_readn(sock_ctx *sc, char *ptr, int nbytes)
             else                                    /* status indicates that more are coming */
                 /* Other possibilites are ECONNRESET indicating*/
                 /* that the tcp connection is broken */
-                fprintf(stderr,"!!!!!!!! read(fd=%d) error=%d\n", pc->fd, errnoval);
+                fprintf(stderr,"!!!!!!!! read(fd=%d) error=%d\n", sc->fd, errnoval);
             return nread; /* error, return < 0 */
 
         } else if (nread == 0) {
@@ -137,29 +137,18 @@ int tcp_readn(sock_ctx *sc, char *ptr, int nbytes)
  * Return number of bytes written or -1.
  * If -1 check for errno for EAGAIN and recall.
  *----------------------------------------------------------------------*/
-int tcp_writen(sock_ctx *pc, const char *ptr, int nbytes)
+int tcp_writen(sSockCtx *sc, const char *ptr, int nbytes)
 {
    int  nwritten=0;
    
    errno = 0;
-   switch (pc->type)
+   switch (sc->type)
    {
-      case iNormal:
-         nwritten = write(pc->fd, ptr, nbytes);
+      case Normal:
+         nwritten = write(sc->fd, ptr, nbytes);
          break;
-#ifdef USE_SSL
-      case iSsl:
-#ifdef DEBUGSSL
-         utlLog_debug("%s SSL_write(%d, lth=%d)", getticks(),pc->fd, nbytes);
-         nwritten = SSL_write(pc->ssl, ptr, nbytes);
-         utlLog_debug("result=%d", nwritten);
-#else
-         nwritten = SSL_write(pc->ssl, ptr, nbytes);
-#endif
-         break;
-#endif
       default:
-         utlLog_error("Impossible error; writen() illegal ProtoCtx type (%d)", pc->type);
+         utlLog_error("Impossible error; writen() illegal ProtoCtx type (%d)", sc->type);
          break;
    }
 
@@ -172,7 +161,7 @@ int tcp_writen(sock_ctx *pc, const char *ptr, int nbytes)
    return nwritten;
 }  /* End of tcp_writen() */
 
-void tcp_printline(sock_ctx *pc, const char *fmt, ...)
+void tcp_printline(sSockCtx *sc, const char *fmt, ...)
 {
     char *p;
     va_list ap;
@@ -196,7 +185,7 @@ void tcp_printline(sock_ctx *pc, const char *fmt, ...)
             return;
         } else if (n >= 0 && n < size) {
             /* print succeeded, let's write it on outstream */
-            tcp_writen(pc, p, n);
+            tcp_writen(sc, p, n);
             utlMem_free(p);
             return;
         } else {

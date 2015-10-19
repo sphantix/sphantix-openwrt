@@ -1,6 +1,6 @@
 #*************************************************
 # *
-# *  Copyright (c) 2015 sphantix 
+# *  Copyright (c) 2015 Sphantix 
 # *  All Rights Reserved
 # *
 # * ***********************************************
@@ -20,12 +20,19 @@ export CFLAGS
 
 #make target lib and relevant obj
 PRG = opsp-client 
-OBJS = main.o
+DIRS = main jsonParser
+DIR_LIBS = main/main.a jsonParser/jsonParser.a
 
 #all target  
 all: $(PRG)
-$(PRG): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+$(PRG): $(DIR_LIBS)
+	$(CC) -o $@ $(CFLAGS) $(DIR_LIBS)
+
+jsonParser/jsonParser.a:
+	$(MAKE) -C jsonParser
+
+main/main.a:
+	$(MAKE) -C main
 
 .SUFFIXES: .c .o
 .c.o:
@@ -33,8 +40,9 @@ $(PRG): $(OBJS)
 
 .PRONY:clean
 clean:
-	@echo "Removing linked and compiled files......"
-	rm -f $(OBJS) $(PRG)
+	@$(MAKE) clean -C jsonParser
+	@$(MAKE) clean -C main
+	rm -f $(PRG)
 
 #
 # Include the rule for making dependency files.
