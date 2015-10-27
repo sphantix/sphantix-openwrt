@@ -9,7 +9,7 @@
 #
 LIB = main.a
 
-OBJS = config.o main.o
+OBJS = config.o event.o main.o
 
 all: $(LIB)
 $(LIB): $(OBJS)

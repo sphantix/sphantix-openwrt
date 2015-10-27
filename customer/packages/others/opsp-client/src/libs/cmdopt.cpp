@@ -8,7 +8,7 @@
 static const char *options = "dc:v";
 static const char* version = "1.0.1";
 
-int option::parser_cmd(int argc, char **argv){
+int option::parse_cmd(int argc, char **argv){
     int opt = 0;
     opt = getopt(argc, argv, options);
     while( opt != -1 ){
@@ -17,7 +17,7 @@ int option::parser_cmd(int argc, char **argv){
                 daemon = true;
                 break;
             case 'c':
-                config = optarg;
+                configfile = optarg;
                 break;
             case 'v':
                 printf("%s\r\n", version);
