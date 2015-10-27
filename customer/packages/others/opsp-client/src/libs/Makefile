@@ -7,18 +7,18 @@
 # #
 # In most cases, you only need to modify this first section.
 #
-LIB = jsonParser.a
+LIB = libs.a
 
-OBJS = cJSON.o
+OBJS = cmdopt.o easywsclient.o cJSON.o
 
 all: $(LIB)
 
 $(LIB): $(OBJS)
 	$(AR) -rcs $@ $(OBJS)
 
-.SUFFIXES: .c .o
-.c.o:
-	$(CC) $(CFLAGS) -c $*.c -o $*.o
+.SUFFIXES: .c .o .cpp
+.cpp.o:
+	$(CXX) $(CFLAGS) -c $*.cpp -o $*.o
 
 .PRONY:clean
 clean:

@@ -9,15 +9,15 @@
 #
 LIB = main.a
 
-OBJS = main.o
+OBJS = config.o main.o
 
 all: $(LIB)
 $(LIB): $(OBJS)
 	$(AR) -rcs $@ $(OBJS)
 
-.SUFFIXES: .c .o
-.c.o:
-	$(CC) $(CFLAGS) -c $*.c -o $*.o
+.SUFFIXES: .c .o .cpp
+.cpp.o:
+	$(CXX) $(CFLAGS) -c $*.cpp -o $*.o
 
 .PRONY:clean
 clean:

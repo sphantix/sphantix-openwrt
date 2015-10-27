@@ -8,39 +8,38 @@
 #
 #set your own environment option  
 MACRO_DEFINES = -DUTL_MEM_LEAK_TRACING -DUTL_MEM_DEBUG
-HDR_INC = -I. \
-		  -I.. \
-		  -I../include \
-		  -I../include/os \
-		  -I../include/basic \
+CURR_DIR := $(shell pwd)
+HDR_INC = -I$(CURR_DIR) \
+		  -I$(CURR_DIR)/libs \
+		  -I$(CURR_DIR)/main \
 
 LIBS = -lsol-util
-CFLAGS += -g -fPIC -Wall -Werror -Wfatal-errors $(LDFLAGS) $(LIBS) $(MACRO_DEFINES)
+CFLAGS += -g -std=c++11 -fPIC -Wall -Werror -Wfatal-errors $(HDR_INC) $(LDFLAGS) $(LIBS) $(MACRO_DEFINES)
 export CFLAGS
 
 #make target lib and relevant obj
 PRG = opsp-client 
-DIRS = main jsonParser
-DIR_LIBS = main/main.a jsonParser/jsonParser.a
+DIRS = main libs 
+DIR_LIBS = main/main.a libs/libs.a
 
 #all target  
 all: $(PRG)
 $(PRG): $(DIR_LIBS)
-	$(CC) -o $@ $(CFLAGS) $(DIR_LIBS)
+	$(CXX) -o $@ $(CFLAGS) $(DIR_LIBS)
 
-jsonParser/jsonParser.a:
-	$(MAKE) -C jsonParser
+libs/libs.a:
+	$(MAKE) -C libs 
 
 main/main.a:
 	$(MAKE) -C main
 
-.SUFFIXES: .c .o
-.c.o:
-	$(CC) $(CFLAGS) -c $*.c -o $*.o
+.SUFFIXES: .c .o .cpp
+.cpp.o:
+	$(CXX) $(CFLAGS) -c $*.cpp -o $*.o
 
 .PRONY:clean
 clean:
-	@$(MAKE) clean -C jsonParser
+	@$(MAKE) clean -C libs 
 	@$(MAKE) clean -C main
 	rm -f $(PRG)
 
