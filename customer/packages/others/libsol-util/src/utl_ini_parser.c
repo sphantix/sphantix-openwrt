@@ -108,6 +108,20 @@ UBOOL8 utl_ini_parse_buffer(char* buffer, char comment_char, char delim_char, ut
                         else
                             goto error;
                     }
+                    else if(*p == comment_char)
+                    {
+                        *p = '\0';
+                        state = STAT_COMMENT;
+                        utlStr_strTrim(key);
+                        utlStr_strTrim(value);
+                        if (utl_ini_check_value(group, key, value)) 
+                        {
+                            if (!handler(group, key, value, cxdata)) 
+                                goto error;
+                        }
+                        else
+                            goto error;
+                    }
                     break;
                 }
             default:break;
