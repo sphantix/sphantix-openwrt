@@ -13,6 +13,10 @@
 #ifndef __UTL_TIMER_H__
 #define __UTL_TIMER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "utl.h"
 #include "utl_time.h"
 #include "./basic/rbtree.h"
@@ -59,5 +63,9 @@ UBOOL8 utlTmr_isEventPresent(const void *handle, UtlEventHandler func, void *ctx
 void utlTmr_dumpEvents(const void *handle);
 UtlRet utlTmr_replaceIfSooner(void *handle, UtlEventHandler func, void *ctxData, UINT32 ms, const char *name);
 void utlTmr_cleanup(void **handle);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UTL_TIMER_H__ */

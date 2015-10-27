@@ -18,7 +18,6 @@ define Package/$(PKG_NAME)
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=A lib which contains kinds of utilities
-  URL:=http://www.wifidog.org
 endef
 
 define Package/$(PKG_NAME)/description

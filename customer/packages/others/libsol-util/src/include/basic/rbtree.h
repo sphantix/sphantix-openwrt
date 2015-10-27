@@ -29,6 +29,10 @@
 #ifndef	__RBTREE_H__
 #define	__RBTREE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "../utl.h"
 
 struct rb_node {
@@ -165,4 +169,9 @@ static inline void rb_link_node(struct rb_node * node, struct rb_node * parent,
 
     *rb_link = node;
 }
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif	/* __RBTREE_H__ */
