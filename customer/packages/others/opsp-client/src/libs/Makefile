@@ -9,7 +9,7 @@
 #
 LIB = libs.a
 
-OBJS = cmdopt.o easywsclient.o cJSON.o
+OBJS = cmdopt.o config.o cJSON.o restclient.o easywsclient.o
 
 all: $(LIB)
 

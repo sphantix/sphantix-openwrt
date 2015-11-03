@@ -1,5 +1,5 @@
-#ifndef EASYWSCLIENT_HPP_20120819_MIOFVASDTNUASZDQPLFD
-#define EASYWSCLIENT_HPP_20120819_MIOFVASDTNUASZDQPLFD
+#ifndef __EASYWSCLIENT_H__
+#define __EASYWSCLIENT_H__
 
 // This code comes from:
 // https://github.com/dhbaird/easywsclient

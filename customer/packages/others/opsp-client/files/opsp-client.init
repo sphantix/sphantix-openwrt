@@ -5,7 +5,7 @@
 START=97
 
 start(){
-    opsp-client -c /etc/opsp-client.conf -d &
+    opsp-client -c /etc/opsp-client.conf -d
 }
 stop(){
     killall opsp-client

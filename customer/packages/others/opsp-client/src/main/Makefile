@@ -9,7 +9,7 @@
 #
 LIB = main.a
 
-OBJS = config.o event.o main.o
+OBJS = event.o plugin_info.o plugin.o ws_thread.o handler_thread.o sys_interface.o client.o main.o
 
 all: $(LIB)
 $(LIB): $(OBJS)

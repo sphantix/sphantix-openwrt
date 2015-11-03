@@ -1,8 +1,9 @@
-#include <libsol-util/utl_logging.h>
-#include "event.hpp"
+#include "event.h"
 
-void event::event_handler(void)
+bool CEvent::CheckEvent(void)
 {
-    utlLog_debug("handle action: %s", action.c_str());
+    if ((sAction == "none") || sAction == "") 
+        return false;
 
+    return true;
 }

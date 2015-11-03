@@ -41,17 +41,17 @@
     #define SOCKET_EAGAIN_EINPROGRESS WSAEINPROGRESS
     #define SOCKET_EWOULDBLOCK WSAEWOULDBLOCK
 #else
-    #include <fcntl.h>
     #include <netdb.h>
     #include <netinet/tcp.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
+    #include <cstdio>
+    #include <cstdlib>
+    #include <cstring>
     #include <sys/socket.h>
     #include <sys/time.h>
     #include <sys/types.h>
     #include <unistd.h>
-    #include <stdint.h>
+    #include <cstdint>
+    #include <fcntl.h>
     #ifndef _SOCKET_T_DEFINED
         typedef int socket_t;
         #define _SOCKET_T_DEFINED
@@ -73,7 +73,7 @@
 #include <string>
 #include <deque>
 
-#include "easywsclient.hpp"
+#include "easywsclient.h"
 
 using easywsclient::Callback_Imp;
 using easywsclient::BytesCallback_Imp;
