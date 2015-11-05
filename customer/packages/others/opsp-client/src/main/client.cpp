@@ -8,9 +8,11 @@
 #include <libsol-util/utl_ini_parser.h>
 #include "main.h"
 #include "client.h"
-#include "http_interface.h"
 #include "ws_thread.h"
 #include "handler_thread.h"
+#include "restclient.h"
+#include "curl/curl.h"
+#include "cJSON.h"
 
 void CClient::GetMac(void)
 {
@@ -82,21 +84,55 @@ void CClient::InitLog(void)
     }
 }
 
+std::vector<std::string> CClient::Split(const std::string str, const std::string pattern)
+{
+    std::string::size_type pos;
+    std::vector<std::string> result;
+    std::string tmp_string = str + pattern;
+    unsigned int size = tmp_string.size();
+
+    for(unsigned int i=0; i<size; i++)
+    {
+        pos = tmp_string.find(pattern,i);
+        if(pos < size)
+        {
+            std::string s = tmp_string.substr(i,pos-i);
+            result.push_back(s);
+            i = pos + pattern.size() - 1;
+        }
+    }
+    return result;
+}
+
 void CClient::InitWSServer(void)
 {
-    config.sWSServerFullPath = config.sWSServerUrl + ":" + config.sWSServerPort + config.sWSServerPath;
+    sWSServerFullPath = "ws://" + sServerUrl + ":80/ws";
 }
 
 void CClient::InitHTTPServer(void)
 {
-    config.sHttpServerFullPath = config.sHttpServerUrl + ":" + config.sHttpServerPort;
+    sHttpServerFullPath = "http://" + sServerUrl + ":80";
+}
+
+void CClient::RandomSelectServerUrl(void)
+{
+    sServerUrl = vServerList[random()%vServerList.size()];
+    InitWSServer();
+    InitHTTPServer();
+
+    utlLog_debug("selected server = %s", sServerUrl.c_str());
+}
+
+void CClient::InitServerInfo(void)
+{
+    vServerList = Split(OPSP_SERVER_CLUSTER, ";");
+    RandomSelectServerUrl();
 }
 
 void CClient::Init(void)
 {
     InitLog();
-    InitWSServer();
-    InitHTTPServer();
+    InitServerInfo();
     InitSysInfo();
 }
 
@@ -199,8 +235,42 @@ bool CClient::IsFisrtBoot(void)
 
 void CClient::FirstSyncWithServer(void)
 {
-    CHttpInterface http_handler;
-    http_handler.Initialize(config.sHttpServerFullPath, sMac, sClientInitFlagFile);
+    utlLog_debug("Enter initialize!");
+    while(bKeepLooping)
+    {
+        std::string url = sHttpServerFullPath + "/ap/info/plugin/sync/" + sMac;
+        utlLog_debug("url = %s", url.c_str());
+        RestClient::response r = RestClient::get(url, 10);
+        if (r.code != CURLE_OK)
+        {
+            sleep(10);
+            RandomSelectServerUrl();
+            continue;
+        }
+        else 
+        {
+            cJSON *pRoot = cJSON_Parse(r.body.c_str());
+            if (pRoot) 
+            {
+                cJSON *pResult = cJSON_GetObjectItem(pRoot, "result");
+                if (pResult)
+                {
+                    char *szPost = cJSON_Print(pRoot);
+                    utlLog_debug("buff = %s", szPost);
+                    std::string result = pResult->valuestring;
+                    if (result == "success")
+                    {
+                        std::string cmd = "touch " + sClientInitFlagFile;
+                        system(cmd.c_str());
+                        cJSON_Delete(pRoot);
+                        break;
+                    }
+                }
+                cJSON_Delete(pRoot);
+                pRoot = NULL;
+            }
+        }
+    }
 }
 
 void CClient::Run(void)

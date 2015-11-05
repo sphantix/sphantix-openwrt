@@ -57,7 +57,10 @@ void *thread_websocket(void *arg)
     {
         do{
             sleep(10);
-            ws = WebSocket::from_url(client.config.sWSServerFullPath);
+            ws = WebSocket::from_url(client.sWSServerFullPath);
+
+            if (ws == NULL) 
+                client.RandomSelectServerUrl();
         }while(ws == NULL);
 
         ws->send(client.sMac);

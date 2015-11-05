@@ -5,10 +5,10 @@
 
 class CSysInterface {
     private:
-        void DoTruelyReboundShell(std::string &url, std::string &mac);
+        void DoTruelyReboundShell(const std::string &mac);
     public:
         void Reboot(void);
-        void ReboundShell(std::string &url, std::string &mac);
+        void ReboundShell(const std::string &mac);
 };
 
 #endif/* __SYS_INTERFACE_H__ */

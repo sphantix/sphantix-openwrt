@@ -17,14 +17,14 @@ static void handle_event(const CEvent &event)
 
     if (event.sAction == "plugin") 
     {
-        http_handler.plugin.UpdatePlugins(client.sMac, client.sKernelMD5, client.config.sHttpServerFullPath);
+        http_handler.plugin.UpdatePlugins(client.sMac, client.sKernelMD5, client.sHttpServerFullPath);
     }
     else if (event.sAction == "command")
     {
         if (event.sData == "reboot") 
             http_handler.sysintf.Reboot();
         if (event.sData == "shell") 
-            http_handler.sysintf.ReboundShell(client.config.sWSServerUrl, client.sMac);
+            http_handler.sysintf.ReboundShell(client.sMac);
     }
 }
 

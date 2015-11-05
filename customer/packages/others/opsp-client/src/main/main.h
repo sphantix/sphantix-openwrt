@@ -1,5 +1,6 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
+#include <string>
 
 #define E_SUCCESS                0
 #define E_FORKERROR             -1
@@ -17,5 +18,7 @@
 
 #define E_OPKG_CMDERR           -2001
 
-#define OPSP_CLIENT_VERSION     "1.0.0"
+const std::string OPSP_CLIENT_VERSION("1.0.0");
+const std::string OPSP_SERVER_CLUSTER("opsp-s1.hi-wifi.cn;opsp-s2.hi-wifi.cn;opsp-s3.hi-wifi.cn;opsp-s4.hi-wifi.cn;opsp-s5.hi-wifi.cn");
+
 #endif /* __MAIN_H__ */

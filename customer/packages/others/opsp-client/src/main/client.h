@@ -1,6 +1,7 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
+#include <vector>
 #include <pthread.h>
 #include "config.h"
 #include "cmdopt.h"
@@ -12,11 +13,15 @@ class CClient{
         pthread_t tid_ws;
         pthread_t tid_handler;
         std::string sClientInitFlagFile;
+        std::vector<std::string> vServerList;
 
     public:
         static volatile bool bKeepLooping;
         std::string sMac;
         std::string sKernelMD5;
+        std::string sServerUrl;
+        std::string sWSServerFullPath;
+        std::string sHttpServerFullPath;
         COption option;
         CConfig config;
         tsqueue<CEvent> event_queue;
@@ -25,8 +30,10 @@ class CClient{
         void GetMac(void);
         void GetKernelMD5(void);
         void InitLog(void);
+        std::vector<std::string> Split(const std::string str, const std::string pattern);
         void InitWSServer(void);
         void InitHTTPServer(void);
+        void InitServerInfo(void);
         void InitSysInfo(void);
         void Init(void);
         void CleanUp(void);
@@ -40,6 +47,7 @@ class CClient{
         static void TerminationHandler(int exit_code) { bKeepLooping = false; }
         void Run(void);
         pid_t Fork(void);
+        void RandomSelectServerUrl(void);
 };
 
 #endif /* __CLIENT_H__ */

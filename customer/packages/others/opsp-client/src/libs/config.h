@@ -10,13 +10,6 @@ class CConfig{
         std::string sLogPath;
         std::string sLogName;
         std::string sLogFile;
-        std::string sWSServerUrl;
-        std::string sWSServerPort;
-        std::string sWSServerPath;
-        std::string sWSServerFullPath;
-        std::string sHttpServerUrl;
-        std::string sHttpServerPort;
-        std::string sHttpServerFullPath;
     private:
         static UBOOL8 HandleConfig(const char *group, const char *name, const char *value, void *cxdata);
         void ParseConfig(const std::string &configfile);
