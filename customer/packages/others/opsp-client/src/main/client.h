@@ -11,6 +11,7 @@ class CClient{
     private:
         pthread_t tid_ws;
         pthread_t tid_handler;
+        std::string sClientInitFlagFile;
 
     public:
         static volatile bool bKeepLooping;
@@ -29,11 +30,13 @@ class CClient{
         void InitSysInfo(void);
         void Init(void);
         void CleanUp(void);
+        bool IsFisrtBoot(void);
+        void FirstSyncWithServer(void);
         static void SigchldHandler(int exit_code);
         void InitSignals(void);
 
     public:
-        CClient(): tid_ws(0), tid_handler(0){}
+        CClient(): tid_ws(0), tid_handler(0), sClientInitFlagFile("/etc/ClientInitFlag"){}
         static void TerminationHandler(int exit_code) { bKeepLooping = false; }
         void Run(void);
         pid_t Fork(void);

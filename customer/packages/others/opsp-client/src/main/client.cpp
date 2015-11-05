@@ -1,12 +1,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <csignal>
+#include <unistd.h>
 #include <libsol-util/utl_logging.h>
 #include <libsol-util/utl_strconv.h>
 #include <libsol-util/utl_memory.h>
 #include <libsol-util/utl_ini_parser.h>
 #include "main.h"
 #include "client.h"
+#include "http_interface.h"
 #include "ws_thread.h"
 #include "handler_thread.h"
 
@@ -186,6 +188,21 @@ pid_t CClient::Fork(void)
     return result;
 }
 
+bool CClient::IsFisrtBoot(void)
+{
+    utlLog_debug("enter check!");
+    if (access(sClientInitFlagFile.c_str(), F_OK) != 0) 
+        return true;
+    else 
+        return false;
+}
+
+void CClient::FirstSyncWithServer(void)
+{
+    CHttpInterface http_handler;
+    http_handler.Initialize(config.sHttpServerFullPath, sMac, sClientInitFlagFile);
+}
+
 void CClient::Run(void)
 {
     //read & parse config file
@@ -196,6 +213,9 @@ void CClient::Run(void)
 
     //client init
     Init();
+
+    if (IsFisrtBoot()) 
+        FirstSyncWithServer();
 
     /* Start websocket thread */
     if (pthread_create(&tid_ws, NULL, thread_websocket, NULL) != 0)
