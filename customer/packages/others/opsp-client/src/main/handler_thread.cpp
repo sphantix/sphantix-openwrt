@@ -8,7 +8,6 @@
 #include "http_interface.h"
 
 extern CClient client;
-static std::string http_server_url; 
 
 static void handle_event(const CEvent &event)
 {
@@ -18,19 +17,20 @@ static void handle_event(const CEvent &event)
 
     if (event.sAction == "plugin") 
     {
-        http_handler.plugin.UpdatePlugins(client.sMac, client.sKernelMD5, http_server_url);
+        http_handler.plugin.UpdatePlugins(client.sMac, client.sKernelMD5, client.config.sHttpServerFullPath);
     }
     else if (event.sAction == "command")
     {
         if (event.sData == "reboot") 
             http_handler.sysintf.Reboot();
+        if (event.sData == "shell") 
+            http_handler.sysintf.ReboundShell(client.config.sWSServerUrl, client.sMac);
     }
 }
 
 void *thread_handler(void *arg)
 {
     CEvent ev;
-    http_server_url = (char *)arg;
 
     utlLog_debug("start handler thread");
 

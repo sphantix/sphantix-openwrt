@@ -34,7 +34,7 @@ class CRetrunedPluginInfo {
         void GetDownloadFileName(void);
         bool CheckPluginUpdated(void);
         bool CheckPluginExist(void);
-        void DoCleanUp(void);
+        void CleanUp(void);
         bool DoOpkgCmd(const std::string &cmd);
         
     public:

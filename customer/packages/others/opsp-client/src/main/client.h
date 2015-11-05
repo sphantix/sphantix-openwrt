@@ -25,6 +25,7 @@ class CClient{
         void GetKernelMD5(void);
         void InitLog(void);
         void InitWSServer(void);
+        void InitHTTPServer(void);
         void InitSysInfo(void);
         void Init(void);
         void CleanUp(void);

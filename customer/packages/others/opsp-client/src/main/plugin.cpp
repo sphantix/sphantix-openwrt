@@ -17,7 +17,6 @@ void CPlugin::GetLocalPluginList(std::vector<CLocalPluginInfo> &vPluginList)
     char name[32] = {'\0'};
     char version[128] = {'\0'};
     std::string cmd("opkg list");
-    std::string tmpbuff;
 
     if((fp = popen(cmd.c_str(), "r")) != NULL)
     {
@@ -88,13 +87,12 @@ bool CPlugin::SyncPluginList(const std::string &mac, const std::string &md5, con
     //send to http server
     RestClient::response r = RestClient::post(server_url + "/ap/info/plugin/list/", "application/json" , std::string(szPost), nTimeout);
     cJSON_Delete(pRoot);
-    free(szPost);
     pRoot = NULL;
+    free(szPost);
 
     //judge return code
     if (r.code == -1 || r.code == CURLE_OPERATION_TIMEDOUT )
         return false;
-
 
     utlLog_debug("return data = %s", r.body.c_str());
     // got return data
@@ -221,7 +219,10 @@ bool CPlugin::IsAlreadyInConf(const std::string &source_url)
         {
             fp.getline(buff, sizeof(buff)); 
             if (strstr(buff, source_url.c_str()) != NULL) 
+            {
+                fp.close();
                 return true;
+            }
         }
         fp.close();
     }

@@ -21,10 +21,14 @@ UBOOL8 CConfig::HandleConfig(const char *group, const char *name, const char *va
         pconfig->nLogLevel = atoi(value);
     } else if (MATCH("WSServer", "url")) {
         pconfig->sWSServerUrl = value;
+    } else if (MATCH("WSServer", "port")) {
+        pconfig->sWSServerPort = value;
     } else if (MATCH("WSServer", "path")) {
         pconfig->sWSServerPath = value;
     } else if (MATCH("HTTPServer", "url")) {
         pconfig->sHttpServerUrl = value;
+    } else if (MATCH("HTTPServer", "port")) {
+        pconfig->sHttpServerPort = value;
     } else {
         return FALSE;  /* unknown section/name, error */
     }
@@ -37,9 +41,9 @@ void CConfig::CheckConfig(void)
         goto error;
     if((sLogDest == "file") && ((sLogPath == "") || (sLogName == "")))
         goto error;
-    if((sWSServerUrl == "") || (sWSServerPath == ""))
+    if((sWSServerUrl == "") || (sWSServerPort == "") || (sWSServerPath == ""))
         goto error;
-    if(sHttpServerUrl == "")
+    if((sHttpServerUrl == "") || (sHttpServerPort == ""))
         goto error;
 
     return;

@@ -24,11 +24,16 @@ bool CRetrunedPluginInfo::CheckPluginUpdated(void)
         {
             sscanf(buff, "%s - %s\n", name, version);
             if (sName == name && sVersion == version) 
+            {
+                pclose(fp);
                 return true;
+            }
         }
         else
+        {
+            pclose(fp);
             return false;
-        pclose(fp);
+        }
     }
     else
         return false;
@@ -45,10 +50,15 @@ bool CRetrunedPluginInfo::CheckPluginExist(void)
     if((fp = popen(cmd.c_str(), "r")) != NULL)
     {
         if(fgets(buff, sizeof(buff), fp) != NULL)
+        {
+            pclose(fp);
             return true;
+        }
         else
+        {
+            pclose(fp);
             return false;
-        pclose(fp);
+        }
     }
     else
         return false;
@@ -66,7 +76,10 @@ bool CRetrunedPluginInfo::DoOpkgCmd(const std::string &cmd)
         while(fgets(buff, sizeof(buff), fp) != NULL)
         {
             if (strstr(buff, "error") != NULL) 
+            {
+                pclose(fp);
                 return false;
+            }
         }
         pclose(fp);
     }
@@ -76,7 +89,7 @@ bool CRetrunedPluginInfo::DoOpkgCmd(const std::string &cmd)
     return true;
 }
 
-void CRetrunedPluginInfo::DoCleanUp(void)
+void CRetrunedPluginInfo::CleanUp(void)
 {
     std::string cleanup_cmd = "rm -rf " + sLocalSavePath + sDownloadFileName;
     utlLog_debug("clean up ,cleanup_cmd = %s", cleanup_cmd.c_str());
@@ -93,7 +106,7 @@ void CRetrunedPluginInfo::Install(void)
     GetDownloadFileName();
 
     //download package
-    if(system(dwonload_cmd.c_str()) < 0)
+    if(system(dwonload_cmd.c_str()) != 0)
     {
         nOperationResult = E_DOWNLOADERR;
         sOperationLog = "Download package error!";
@@ -122,7 +135,7 @@ void CRetrunedPluginInfo::Install(void)
             }
         }
     }
-    DoCleanUp();
+    CleanUp();
 }
 
 void CRetrunedPluginInfo::Remove(void)
@@ -135,7 +148,7 @@ void CRetrunedPluginInfo::Remove(void)
     if (!DoOpkgCmd(remove_cmd))
     {
         nOperationResult = E_OPKG_CMDERR;
-        sOperationLog = "Do command error, opkg install failed!";
+        sOperationLog = "Do command error, opkg remove failed!";
     }
     else
     {

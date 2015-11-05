@@ -82,13 +82,19 @@ void CClient::InitLog(void)
 
 void CClient::InitWSServer(void)
 {
-    config.sWSServerFullPath = config.sWSServerUrl + config.sWSServerPath;
+    config.sWSServerFullPath = config.sWSServerUrl + ":" + config.sWSServerPort + config.sWSServerPath;
+}
+
+void CClient::InitHTTPServer(void)
+{
+    config.sHttpServerFullPath = config.sHttpServerUrl + ":" + config.sHttpServerPort;
 }
 
 void CClient::Init(void)
 {
     InitLog();
     InitWSServer();
+    InitHTTPServer();
     InitSysInfo();
 }
 
@@ -192,7 +198,7 @@ void CClient::Run(void)
     Init();
 
     /* Start websocket thread */
-    if (pthread_create(&tid_ws, NULL, thread_websocket, (void *)config.sWSServerFullPath.c_str()) != 0)
+    if (pthread_create(&tid_ws, NULL, thread_websocket, NULL) != 0)
     {
         utlLog_error("Failed to create a new thread (websocket) - exiting");
         TerminationHandler(E_THREADWSERR);
@@ -200,7 +206,7 @@ void CClient::Run(void)
     pthread_detach(tid_ws);
 
     /* Start http thread */
-    if (pthread_create(&tid_handler, NULL, thread_handler, (void *)config.sHttpServerUrl.c_str()) != 0)
+    if (pthread_create(&tid_handler, NULL, thread_handler, NULL) != 0)
     {
         utlLog_error("Failed to create a new thread (handler) - exiting");
         TerminationHandler(E_THREADHANDLERERR);
@@ -209,6 +215,7 @@ void CClient::Run(void)
 
     while(bKeepLooping)
     {
+        sleep(10);
     }
 
     CleanUp();

@@ -47,7 +47,6 @@ void *thread_websocket(void *arg)
     pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
     struct timespec timeout;
-    std::string server_full_path = (char *)arg;
 
     utlLog_debug("start websocket thread");
 
@@ -58,7 +57,7 @@ void *thread_websocket(void *arg)
     {
         do{
             sleep(10);
-            ws = WebSocket::from_url(server_full_path);
+            ws = WebSocket::from_url(client.config.sWSServerFullPath);
         }while(ws == NULL);
 
         ws->send(client.sMac);
