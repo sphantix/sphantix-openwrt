@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+START=97
+
+
+start() {
+	touch /etc/crontabs/root
+	r=`grep '/usr/bin/opsp-dltool' /etc/crontabs/root`
+	if [ -z "$r" ]; then
+	echo '*/1 * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root
+	fi
+	/etc/init.d/cron restart
+}
+
+stop() {
+	sed -i '/\/usr\/bin\/opsp-dltool/d' /etc/crontabs/root
+}
+
+status() {
+	stop
+	start	
+}
