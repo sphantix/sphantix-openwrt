@@ -17,7 +17,7 @@ class CPlugin {
         void UpdateOpkgConf(const std::string &source_url);
 
     public:
-        CPlugin(): nTimeout(10), sOpkgConfFile("/etc/opkg.conf"){}
+        CPlugin(): nTimeout(5), sOpkgConfFile("/etc/opkg.conf"){}
         void UpdatePlugins(const std::string &mac, const std::string &md5, const std::string &server_url);
 };
 

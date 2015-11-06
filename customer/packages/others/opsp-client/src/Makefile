@@ -7,7 +7,7 @@
 # #
 #
 #set your own environment option  
-MACRO_DEFINES = -DUTL_MEM_LEAK_TRACING -DUTL_MEM_DEBUG
+MACRO_DEFINES =
 CURR_DIR := $(shell pwd)
 HDR_INC = -I$(CURR_DIR) \
 		  -I$(CURR_DIR)/libs \

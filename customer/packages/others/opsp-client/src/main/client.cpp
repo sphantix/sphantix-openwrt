@@ -226,7 +226,6 @@ pid_t CClient::Fork(void)
 
 bool CClient::IsFisrtBoot(void)
 {
-    utlLog_debug("enter check!");
     if (access(sClientInitFlagFile.c_str(), F_OK) != 0) 
         return true;
     else 
