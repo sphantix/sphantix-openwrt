@@ -2,11 +2,13 @@
 #define __HTTP_INTERFACE_H__
 
 #include "plugin.h"
+#include "firmware.h"
 #include "sys_interface.h"
 
 class CHttpInterface {
     public:
         CPlugin plugin;
+        CFirmware firmware;
         CSysInterface sysintf;
 };
 

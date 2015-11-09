@@ -3,7 +3,7 @@
 
 #include <string>
 
-class CEvent{
+class CEvent {
     public:
         std::string sAction;
         std::string sData;

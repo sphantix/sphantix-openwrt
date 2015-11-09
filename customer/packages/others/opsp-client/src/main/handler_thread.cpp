@@ -19,6 +19,10 @@ static void handle_event(const CEvent &event)
     {
         http_handler.plugin.UpdatePlugins(client.sMac, client.sKernelMD5, client.sHttpServerFullPath);
     }
+    else if (event.sAction == "firmware") 
+    {
+        http_handler.firmware.UpgradeFirmware(client.sMac, client.sKernelMD5, client.sHttpServerFullPath);
+    }
     else if (event.sAction == "command")
     {
         if (event.sData == "reboot") 

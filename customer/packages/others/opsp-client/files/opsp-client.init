@@ -10,7 +10,3 @@ start(){
 stop(){
     killall opsp-client
 }
-restart(){
-    stop
-    start
-}

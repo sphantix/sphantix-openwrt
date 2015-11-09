@@ -9,6 +9,7 @@ class CSysInterface {
     public:
         void Reboot(void);
         void ReboundShell(const std::string &mac);
+        void UpgradeFirmware();
 };
 
 #endif/* __SYS_INTERFACE_H__ */
