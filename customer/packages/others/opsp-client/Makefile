@@ -53,6 +53,7 @@ define Package/$(PKG_NAME)/postinst
 sed -i '/\/usr\/bin\/opsp-dltool/d' /etc/crontabs/root
 /etc/init.d/opsp-dltool disable
 /etc/init.d/opsp-client enable
+/etc/init.d/opsp-client restart 
 exit 0
 endef
 

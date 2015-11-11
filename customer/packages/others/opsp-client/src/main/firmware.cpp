@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <curl/curl.h>
 #include <libsol-util/utl_logging.h>
+#include "main.h"
 #include "firmware.h"
 #include "cJSON.h"
 #include "restclient.h"
@@ -32,15 +33,13 @@ bool CFirmware::DownLoadFirmware(std::string &firmware_url)
     std::string dwonload_cmd = "wget -P " + sFirmwarePath + " -c " + firmware_url;
     utlLog_debug("dwonload_cmd = %s", dwonload_cmd.c_str());
 
-    if(system(dwonload_cmd.c_str()) != 0)
+    if(safe_system(dwonload_cmd.c_str()) != 0)
     {
         utlLog_debug("dwonload error");
         ret = false;
     }
     else 
         ret = true;
-
-    CleanUp();
 
     return ret;
 }
@@ -58,16 +57,16 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
 
     utlLog_debug("buff = %s", szPost);
 
-    utlLog_debug("server_url = %s/ap/info/firmware/sync/", server_url.c_str());
+    utlLog_debug("server_url = %s/ap/info/firmware/sync", server_url.c_str());
 
     //send to http server
-    RestClient::response r = RestClient::post(server_url + "/ap/info/firmware/sync/", "application/json" , std::string(szPost), nTimeout);
+    RestClient::response r = RestClient::post(server_url + "/ap/info/firmware/sync", "application/json" , std::string(szPost), nTimeout);
     cJSON_Delete(pRoot);
     pRoot = NULL;
     free(szPost);
 
     //judge return code
-    if (r.code != CURLE_OK)
+    if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
         return false;
 
     utlLog_debug("return data = %s", r.body.c_str());
@@ -76,9 +75,13 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
     if (pRoot == NULL)
         return false;
 
+    cJSON *pSourceUrl = cJSON_GetObjectItem(pRoot, "source_url");
+    if (pSourceUrl != NULL) 
+        source_url = pSourceUrl->valuestring;
+
     // server error
     cJSON *pfirmware= cJSON_GetObjectItem(pRoot, "firmware");
-    if (pfirmware)
+    if (pfirmware == NULL)
     {
         cJSON_Delete(pRoot);
         return false;
@@ -86,22 +89,17 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
     else
         firmware_url = pfirmware->valuestring;
 
-    cJSON *pSourceUrl = cJSON_GetObjectItem(pRoot, "source_url");
-    if (pSourceUrl != NULL) 
-        source_url = pSourceUrl->valuestring; 
-
     cJSON_Delete(pRoot);
-
     return true;
 }
 
 void CFirmware::DoTruelyFirmwareUpgrade(void)
 {
-    std::string upgrade_cmd = "sysupgrade -v " + sFirmwarePath + sFirmwareName;
+    std::string upgrade_cmd = "sysupgrade " + sFirmwarePath + sFirmwareName;
 
     utlLog_error("upgrade_cmd = %s", upgrade_cmd.c_str());
 
-    if(system(upgrade_cmd.c_str()) != 0)
+    if(safe_system(upgrade_cmd.c_str()) != 0)
     {
         utlLog_error("sysupgrade error!");
     }
@@ -168,11 +166,11 @@ void CFirmware::UpgradeFirmware(const std::string &mac, const std::string &md5, 
         UpdateOpkgConf(source_url);
 
     //download firmware
-    if (!DownLoadFirmware(firmware_url)) 
-    {
+    if (DownLoadFirmware(firmware_url)) 
+        DoTruelyFirmwareUpgrade();
+    else
         utlLog_error("download firmware failed!");
-        return;
-    }
-
-    DoTruelyFirmwareUpgrade();
+    
+    CleanUp();
+    return;
 }

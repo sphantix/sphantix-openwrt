@@ -106,7 +106,7 @@ void CRetrunedPluginInfo::Install(void)
     GetDownloadFileName();
 
     //download package
-    if(system(dwonload_cmd.c_str()) != 0)
+    if(safe_system(dwonload_cmd.c_str()) != 0)
     {
         nOperationResult = E_DOWNLOADERR;
         sOperationLog = "Download package error!";

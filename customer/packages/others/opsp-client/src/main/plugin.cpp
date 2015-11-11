@@ -82,16 +82,16 @@ bool CPlugin::SyncPluginList(const std::string &mac, const std::string &md5, con
 
     utlLog_debug("buff = %s", szPost);
 
-    utlLog_debug("server_url = %s/ap/info/plugin/list/", server_url.c_str());
+    utlLog_debug("server_url = %s/ap/info/plugin/list", server_url.c_str());
 
     //send to http server
-    RestClient::response r = RestClient::post(server_url + "/ap/info/plugin/list/", "application/json" , std::string(szPost), nTimeout);
+    RestClient::response r = RestClient::post(server_url + "/ap/info/plugin/list", "application/json" , std::string(szPost), nTimeout);
     cJSON_Delete(pRoot);
     pRoot = NULL;
     free(szPost);
 
     //judge return code
-    if (r.code != CURLE_OK)
+    if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
         return false;
 
     utlLog_debug("return data = %s", r.body.c_str());
@@ -179,7 +179,7 @@ bool CPlugin::Report(const std::string &report_url, const std::vector<CRetrunedP
     free(szPost);
     pRoot = NULL;
 
-    if (r.code != CURLE_OK)
+    if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
         return false;
 
     pRoot = cJSON_Parse(r.body.c_str());

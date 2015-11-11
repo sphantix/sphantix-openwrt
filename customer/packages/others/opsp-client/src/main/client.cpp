@@ -1,5 +1,3 @@
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <csignal>
 #include <unistd.h>
 #include <libsol-util/utl_logging.h>
@@ -34,7 +32,7 @@ void CClient::GetMac(void)
     else
     {
         utlLog_error("popen error, exit!");
-        CClient::TerminationHandler(E_POPENERROR);
+        bKeepLooping = false;
     }
 }
 
@@ -58,13 +56,15 @@ void CClient::GetKernelMD5(void)
     else
     {
         utlLog_error("popen error, exit!");
-        CClient::TerminationHandler(E_POPENERROR);
+        bKeepLooping = false;
     }
 }
 
 void CClient::InitSysInfo(void)
 {
     GetMac();
+    //wait for GetMac child process exit;
+    sleep(1);
     GetKernelMD5();
 }
 
@@ -153,77 +153,6 @@ void CClient::CleanUp()
     utlLog_cleanup();
 }
 
-void CClient::SigchldHandler(int exit_code)
-{
-    int status;
-    pid_t pid;
-
-    while((pid = waitpid(-1, &status, WNOHANG)) > 0)
-    {
-        utlLog_debug("Handler for SIGCHLD reaped child PID %d", pid);
-    }
-}
-
-void CClient::InitSignals(void)
-{
-    struct sigaction sa;
-
-    sa.sa_handler = CClient::SigchldHandler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        fprintf(stderr, "sigaction(): %s", strerror(errno));
-        exit(E_SETSIGNALERR);
-    }
-
-    /* Trap SIGPIPE */
-    /* This is done so that when libhttpd does a socket operation on
-     * a disconnected socket (i.e.: Broken Pipes) we catch the signal
-     * and do nothing. The alternative is to exit. SIGPIPE are harmless
-     * if not desirable.
-     */
-    sa.sa_handler = SIG_IGN;
-    if (sigaction(SIGPIPE, &sa, NULL) == -1) {
-        fprintf(stderr, "sigaction(): %s", strerror(errno));
-        exit(E_SETSIGNALERR);
-    }
-
-    sa.sa_handler = CClient::TerminationHandler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-
-    /* Trap SIGTERM */
-    if (sigaction(SIGTERM, &sa, NULL) == -1) {
-        fprintf(stderr, "sigaction(): %s", strerror(errno));
-        exit(E_SETSIGNALERR);
-    }
-
-    /* Trap SIGQUIT */
-    if (sigaction(SIGQUIT, &sa, NULL) == -1) {
-        fprintf(stderr, "sigaction(): %s", strerror(errno));
-        exit(E_SETSIGNALERR);
-    }
-
-    /* Trap SIGINT */
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        fprintf(stderr, "sigaction(): %s", strerror(errno));
-        exit(E_SETSIGNALERR);
-    }
-}
-
-pid_t CClient::Fork(void)
-{
-    pid_t result;
-    result = fork();
-
-    if (result == -1) {
-        fprintf(stderr, "Failed to fork: %s.  Bailing out\n", strerror(errno));
-        exit(E_FORKERROR);
-    }
-
-    return result;
-}
-
 bool CClient::IsFisrtBoot(void)
 {
     if (access(sClientInitFlagFile.c_str(), F_OK) != 0) 
@@ -240,7 +169,8 @@ void CClient::FirstSyncWithServer(void)
         std::string url = sHttpServerFullPath + "/ap/info/plugin/sync/" + sMac;
         utlLog_debug("url = %s", url.c_str());
         RestClient::response r = RestClient::get(url, 10);
-        if (r.code != CURLE_OK)
+
+        if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
         {
             sleep(10);
             RandomSelectServerUrl();
@@ -277,9 +207,6 @@ void CClient::Run(void)
     //read & parse config file
     config.InitConfig(option.sConfigFile);
 
-    /* Init the signals to catch chld/quit/etc */
-    InitSignals();
-
     //client init
     Init();
 
@@ -290,7 +217,7 @@ void CClient::Run(void)
     if (pthread_create(&tid_ws, NULL, thread_websocket, NULL) != 0)
     {
         utlLog_error("Failed to create a new thread (websocket) - exiting");
-        TerminationHandler(E_THREADWSERR);
+        bKeepLooping = false;
     }
     pthread_detach(tid_ws);
 
@@ -298,7 +225,7 @@ void CClient::Run(void)
     if (pthread_create(&tid_handler, NULL, thread_handler, NULL) != 0)
     {
         utlLog_error("Failed to create a new thread (handler) - exiting");
-        TerminationHandler(E_THREADHANDLERERR);
+        bKeepLooping = false;
     }
     pthread_detach(tid_handler);
 
