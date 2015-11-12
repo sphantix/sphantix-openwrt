@@ -91,7 +91,7 @@ bool CPlugin::SyncPluginList(const std::string &mac, const std::string &md5, con
     free(szPost);
 
     //judge return code
-    if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
+    if (r.code != 200)
         return false;
 
     utlLog_debug("return data = %s", r.body.c_str());
@@ -179,7 +179,7 @@ bool CPlugin::Report(const std::string &report_url, const std::vector<CRetrunedP
     free(szPost);
     pRoot = NULL;
 
-    if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
+    if (r.code != 200)
         return false;
 
     pRoot = cJSON_Parse(r.body.c_str());

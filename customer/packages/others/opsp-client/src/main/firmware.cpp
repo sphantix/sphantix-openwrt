@@ -66,7 +66,7 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
     free(szPost);
 
     //judge return code
-    if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
+    if (r.code != 200)
         return false;
 
     utlLog_debug("return data = %s", r.body.c_str());

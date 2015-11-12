@@ -51,6 +51,10 @@ endef
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
 sed -i '/\/usr\/bin\/opsp-dltool/d' /etc/crontabs/root
+r=`grep '/var/opsp-client.log' /etc/crontabs/root`
+if [ -z "$$r" ]; then
+echo '0 0 * * * rm -rf /var/opsp-client.log' >> /etc/crontabs/root
+fi
 /etc/init.d/opsp-dltool disable
 /etc/init.d/opsp-client enable
 /etc/init.d/opsp-client restart 
@@ -59,6 +63,7 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
+sed -i '/\/var\/opsp-client.log/d' /etc/crontabs/root
 r=`grep '/usr/bin/opsp-dltool' /etc/crontabs/root`
 if [ -z "$$r" ]; then
 echo '*/1 * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root

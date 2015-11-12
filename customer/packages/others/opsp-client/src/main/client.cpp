@@ -170,7 +170,7 @@ void CClient::FirstSyncWithServer(void)
         utlLog_debug("url = %s", url.c_str());
         RestClient::response r = RestClient::get(url, 10);
 
-        if (r.code == CURLE_OPERATION_TIMEDOUT || r.code == -1)
+        if (r.code != 200)
         {
             sleep(10);
             RandomSelectServerUrl();
