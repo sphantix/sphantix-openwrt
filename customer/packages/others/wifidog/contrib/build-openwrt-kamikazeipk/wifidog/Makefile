@@ -1,27 +1,28 @@
 #
-# Copyright (C) 2006,2008 OpenWrt.org
-# Copyright (C) 2008 Technologies Coeus inc.
+# Copyright (C) 2006,2013 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
-# $Id$
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=wifidog
-PKG_VERSION:=20090925
-PKG_RELEASE:=1
+PKG_NAME:=wifidog_sphantix
+PKG_VERSION:=1.0
+PKG_RELEASE=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:= @SF/$(PKG_NAME)
-PKG_MD5SUM:=
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=git://github.com/wifidog/wifidog-gateway.git
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=440445db60b0c3aff528ea703a828b0567293387
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
 
-PKG_FIXUP = libtool
+PKG_FIXUP:=autoreconf
+PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/wifidog
+define Package/wifidog_sphantix
   SUBMENU:=Captive Portals
   SECTION:=net
   CATEGORY:=Network
@@ -30,22 +31,23 @@ define Package/wifidog
   URL:=http://www.wifidog.org
 endef
 
-define Package/wifidog/description
-	The Wifidog project is a complete and embeddable captive 
-	portal solution for wireless community groups or individuals 
-	who wish to open a free Hotspot while still preventing abuse 
+define Package/wifidog_sphantix/description
+	The Wifidog project is a complete and embeddable captive
+	portal solution for wireless community groups or individuals
+	who wish to open a free Hotspot while still preventing abuse
 	of their Internet connection.
 endef
 
-define Package/wifidog/conffiles
+define Package/wifidog_sphantix/conffiles
 /etc/wifidog.conf
 endef
 
-MAKE_FLAGS += \
-	DESTDIR="$(PKG_INSTALL_DIR)" \
-	all install
+define Build/Prepare
+	$(call Build/Prepare/Default)
+	$(CP) -rf ./* $(PKG_BUILD_DIR)
+endef
 
-define Package/wifidog/install
+define Package/wifidog_sphantix/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/scripts/init.d/wifidog $(1)/usr/bin/wifidog-init
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/wifidog $(1)/usr/bin/
@@ -53,10 +55,10 @@ define Package/wifidog/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libhttpd.so* $(1)/usr/lib/
 	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/wifidog.conf $(1)/etc/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/wifidog.conf $(1)/etc/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/wifidog-msg.html $(1)/etc/
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/$(PKG_NAME).init $(1)/etc/init.d/wifidog
+	$(INSTALL_BIN) ./files/wifidog.init $(1)/etc/init.d/wifidog
 endef
 
-$(eval $(call BuildPackage,wifidog))
+$(eval $(call BuildPackage,wifidog_sphantix))
