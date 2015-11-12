@@ -140,7 +140,7 @@ void CFirmware::UpdateOpkgConf(const std::string &source_url)
     std::ofstream fp(sOpkgConfFile.c_str(), std::ofstream::out | std::ofstream::app);
     if (fp.is_open()) 
     {
-        fp << source_url << std::endl;
+        fp << "src/gz hiwifi " + source_url << std::endl;
         fp.close();
     }
     else 
