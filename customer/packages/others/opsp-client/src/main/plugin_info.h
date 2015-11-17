@@ -35,7 +35,6 @@ class CRetrunedPluginInfo {
         bool CheckPluginUpdated(void);
         bool CheckPluginExist(void);
         void CleanUp(void);
-        bool DoOpkgCmd(const std::string &cmd);
         
     public:
         CRetrunedPluginInfo(): sLocalSavePath("/var/"), nId(0), nAction(0), nOperationResult(0), sName(""), sVersion(""), sUrl(""), sOperationLog(""){}

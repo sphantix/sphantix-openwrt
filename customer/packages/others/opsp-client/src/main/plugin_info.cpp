@@ -66,29 +66,6 @@ bool CRetrunedPluginInfo::CheckPluginExist(void)
     return false;
 }
 
-bool CRetrunedPluginInfo::DoOpkgCmd(const std::string &cmd)
-{
-    FILE *fp = NULL;
-    char buff[128] = {'\0'};
-
-    if((fp = popen(cmd.c_str(), "r")) != NULL)
-    {
-        while(fgets(buff, sizeof(buff), fp) != NULL)
-        {
-            if (strstr(buff, "error") != NULL) 
-            {
-                pclose(fp);
-                return false;
-            }
-        }
-        pclose(fp);
-    }
-    else
-        return false;
-
-    return true;
-}
-
 void CRetrunedPluginInfo::CleanUp(void)
 {
     std::string cleanup_cmd = "rm -rf " + sLocalSavePath + sDownloadFileName;
@@ -116,7 +93,7 @@ void CRetrunedPluginInfo::Install(void)
         std::string install_cmd = "opkg install " + sLocalSavePath + sDownloadFileName;
         utlLog_debug("install_cmd = %s", install_cmd.c_str());
         //install package
-        if (!DoOpkgCmd(install_cmd))
+        if (safe_system(install_cmd.c_str()) != 0)
         {
             nOperationResult = E_OPKG_CMDERR;
             sOperationLog = "Do command error, opkg install failed!";
@@ -145,7 +122,7 @@ void CRetrunedPluginInfo::Remove(void)
     utlLog_debug("Remove ipk, cmd = %s", remove_cmd.c_str());
 
     //install package
-    if (!DoOpkgCmd(remove_cmd))
+    if (safe_system(remove_cmd.c_str()) != 0)
     {
         nOperationResult = E_OPKG_CMDERR;
         sOperationLog = "Do command error, opkg remove failed!";
