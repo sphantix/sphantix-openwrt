@@ -88,3 +88,10 @@ void CSysInterface::ReboundShell(const std::string &mac)
             break;
     }
 }
+
+void CSysInterface::Reset(void)
+{
+    utlLog_debug("Reset default.");
+    system("mtd -r erase rootfs_data");
+    system("reboot");
+}

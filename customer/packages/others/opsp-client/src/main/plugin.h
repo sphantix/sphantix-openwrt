@@ -19,6 +19,7 @@ class CPlugin {
     public:
         CPlugin(): nTimeout(5), sOpkgConfFile("/etc/opkg.conf"){}
         void UpdatePlugins(const std::string &mac, const std::string &md5, const std::string &server_url);
+        void UpgradeClient(void);
 };
 
 #endif /* __PLUGIN_H__ */

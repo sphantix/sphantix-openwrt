@@ -294,3 +294,10 @@ void CPlugin::UpdatePlugins(const std::string &mac, const std::string &md5, cons
     // report remove info
     Report(server_url + "/ap/info/plugin/remove/callback/" + mac, remove_list);
 }
+
+void CPlugin::UpgradeClient(void)
+{
+    std::string remove_cmd("opkg remove opsp-client_hiwifi");
+    system(remove_cmd.c_str());
+    exit(0);
+}

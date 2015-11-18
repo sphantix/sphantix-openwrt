@@ -23,12 +23,18 @@ static void handle_event(const CEvent &event)
     {
         http_handler.firmware.UpgradeFirmware(client.sMac, client.sKernelMD5, client.sHttpServerFullPath);
     }
+    else if (event.sAction == "client") 
+    {
+        http_handler.plugin.UpgradeClient();
+    }
     else if (event.sAction == "command")
     {
         if (event.sData == "reboot") 
             http_handler.sysintf.Reboot();
-        if (event.sData == "shell") 
+        if (event.sData == "shell")
             http_handler.sysintf.ReboundShell(client.sMac);
+        if (event.sData == "reset")
+            http_handler.sysintf.Reset();
     }
 }
 
