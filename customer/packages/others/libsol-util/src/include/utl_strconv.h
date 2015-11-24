@@ -13,6 +13,10 @@
 #ifndef __UTL_STRCONV_H__
 #define __UTL_STRCONV_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "utl.h"
 
 UtlRet utlStr_strtol(const char *str, char **endptr, SINT32 base, SINT32 *val);
@@ -32,4 +36,9 @@ char *utlStr_strcpy(char *dest, const char *src);
 char *utlStr_strcat(char *dest, const char *src);
 SINT32 utlStr_strlen(const char *src);
 char *utlStr_getBaseName(char *path);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __UTL_STRCONV_H__ */

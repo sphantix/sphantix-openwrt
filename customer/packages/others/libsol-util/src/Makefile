@@ -11,7 +11,7 @@ CC = gcc
 AR = ar
 
 CURR_DIR := $(shell pwd)
-MACRO_DEFINES = -DUTL_MEM_LEAK_TRACING -DUTL_MEM_DEBUG
+MACRO_DEFINES =
 HDR_INC = -I$(CURR_DIR) \
 		  -I$(CURR_DIR)/include \
 		  -I$(CURR_DIR)/include/os \

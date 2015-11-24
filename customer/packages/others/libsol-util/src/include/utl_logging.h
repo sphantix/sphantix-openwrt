@@ -13,6 +13,10 @@
 #ifndef __UTL_LOGGING_H__
 #define __UTL_LOGGING_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 #include <unistd.h>
 #include "utl.h"
@@ -88,4 +92,9 @@ UINT32 utlLog_getHeaderMask(void);
 void utlLog_setLogFile(char *name);
 
 char *utlLog_getLogFile(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __UTL_LOGGING_H__ */

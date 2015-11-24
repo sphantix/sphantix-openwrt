@@ -13,6 +13,10 @@
 #ifndef __UTL_TIME_H__
 #define __UTL_TIME_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "utl.h"
 
 #define NSECS_IN_SEC        1000000000
@@ -40,5 +44,10 @@ void utlTm_get(UtlTimestamp *tms);
 void utlTm_delta(const UtlTimestamp *newTms, const UtlTimestamp *oldTms, UtlTimestamp *deltaTms);
 UINT32 utlTm_deltaInMilliSeconds(const UtlTimestamp *newTms, const UtlTimestamp *oldTms);
 void utlTm_addMilliSeconds(UtlTimestamp *tms, UINT32 ms);
+void utlTm_getFormatTimeString(char *buff, int len, const char *format);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UTL_TIME_H__ */

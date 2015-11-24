@@ -16,55 +16,17 @@
 #include "utl_strconv.h"
 #include "utl_logging.h"
 
-DLIST_HEAD(ini_group_head);
-
-static void utl_ini_init_group_node(UtlIniGroup *node)
+static UBOOL8 utl_ini_check_value(char *group, char *key, char *value)
 {
-    node->pair_num = 0;
-    INIT_DLIST_HEAD(&node->pair_head);
-    dlist_add(&node->group_node, &ini_group_head);
+    return((utlStr_strlen(group) > 0) && (utlStr_strlen(key) > 0) && (utlStr_strlen(value) > 0));
 }
 
-static UBOOL8 utl_ini_check_value(char *key, char *value)
-{
-    return((utlStr_strlen(key) > 0) && (utlStr_strlen(value) > 0));
-}
-
-static void utl_ini_cleanup(DlistNode *head)
-{
-    UtlIniGroup *group_ptr = NULL;
-    UtlIniGroup *group_next = NULL;
-    UtlIniValuePair *pair_ptr = NULL;
-    UtlIniValuePair *pair_next = NULL;
-
-    dlist_for_each_entry_safe(group_ptr, group_next, &ini_group_head, group_node)
-    {
-        dlist_for_each_entry_safe(pair_ptr, pair_next, &group_ptr->pair_head, pair_node)
-        {
-            dlist_del(&pair_ptr->pair_node);
-            UTLMEM_FREE_BUF_AND_NULL_PTR(pair_ptr->key);
-            UTLMEM_FREE_BUF_AND_NULL_PTR(pair_ptr->value);
-            UTLMEM_FREE_BUF_AND_NULL_PTR(pair_ptr);
-            group_ptr->pair_num--;
-        }
-        
-        if(dlist_empty(&group_ptr->pair_head) && group_ptr->pair_num == 0)
-        {
-            dlist_del(&group_ptr->group_node);
-            UTLMEM_FREE_BUF_AND_NULL_PTR(group_ptr->group_name);
-            UTLMEM_FREE_BUF_AND_NULL_PTR(group_ptr);
-        }
-    }
-}
-
-UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniValueHandler func)
+UBOOL8 utl_ini_parse_buffer(char* buffer, char comment_char, char delim_char, utl_ini_handler handler, void *cxdata)
 {
     char *p = buffer;
-    char *group_start = NULL;
-    char *key_start   = NULL;
-    char *value_start = NULL;
-    UtlIniGroup *group_ptr = NULL;
-    UtlIniValuePair *pair_ptr = NULL;
+    char *group = NULL;
+    char *key = NULL;
+    char *value = NULL;
 
     enum _State
     {
@@ -84,7 +46,7 @@ UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniVa
                     if(*p == '[')
                     {
                         state = STAT_GROUP;
-                        group_start = p + 1;
+                        group = p + 1;
                     }
                     else if(*p == comment_char)
                     {
@@ -93,7 +55,7 @@ UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniVa
                     else if(!isspace(*p))
                     {
                         state = STAT_KEY;
-                        key_start = p;
+                        key = p;
                     }
                     else if(*p == delim_char)
                         goto error;
@@ -105,15 +67,7 @@ UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniVa
                     {
                         *p = '\0';
                         state = STAT_NONE;
-                        utlStr_strTrim(group_start);
-                        if ((group_ptr = utlMem_alloc(sizeof(UtlIniGroup), ALLOC_ZEROIZE)) != NULL) 
-                        {
-                            utl_ini_init_group_node(group_ptr);
-                            group_ptr->group_name = utlMem_strdup(group_start);
-                            utlLog_debug("[%s]", group_ptr->group_name);
-                        }
-                        else
-                            goto error;
+                        utlStr_strTrim(group);
                     }
                     else if (*p == delim_char) 
                         goto error;
@@ -134,7 +88,7 @@ UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniVa
                     {
                         *p = '\0';
                         state = STAT_VALUE;
-                        value_start = p + 1;
+                        value = p + 1;
                     }
                     break;
                 }
@@ -144,24 +98,25 @@ UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniVa
                     {
                         *p = '\0';
                         state = STAT_NONE;
-                        utlStr_strTrim(key_start);
-                        utlStr_strTrim(value_start);
-                        if (group_ptr != NULL) 
+                        utlStr_strTrim(key);
+                        utlStr_strTrim(value);
+                        if (utl_ini_check_value(group, key, value)) 
                         {
-                            if (utl_ini_check_value(key_start, value_start)) 
-                            {
-                                if ((pair_ptr = utlMem_alloc(sizeof(UtlIniValuePair), ALLOC_ZEROIZE)) != NULL)
-                                {
-                                    pair_ptr->key = utlMem_strdup(key_start);
-                                    pair_ptr->value = utlMem_strdup(value_start);
-                                    dlist_add(&pair_ptr->pair_node, &group_ptr->pair_head);
-                                    group_ptr->pair_num++;
-                                    utlLog_debug("%s%c%s", pair_ptr->key, delim_char, pair_ptr->value);
-                                }
-                                else
-                                    goto error;
-                            }
-                            else
+                            if (!handler(group, key, value, cxdata)) 
+                                goto error;
+                        }
+                        else
+                            goto error;
+                    }
+                    else if(*p == comment_char)
+                    {
+                        *p = '\0';
+                        state = STAT_COMMENT;
+                        utlStr_strTrim(key);
+                        utlStr_strTrim(value);
+                        if (utl_ini_check_value(group, key, value)) 
+                        {
+                            if (!handler(group, key, value, cxdata)) 
                                 goto error;
                         }
                         else
@@ -175,38 +130,43 @@ UBOOL8 utl_ini_parser(char* buffer, char comment_char, char delim_char, UtlIniVa
 
     if(state == STAT_VALUE)
     {
-        utlStr_strTrim(key_start);
-        utlStr_strTrim(value_start);
-        if (group_ptr != NULL) 
+        utlStr_strTrim(key);
+        utlStr_strTrim(value);
+        if (utl_ini_check_value(group, key, value)) 
         {
-            if (utl_ini_check_value(key_start, value_start)) 
-            {
-                if ((pair_ptr = utlMem_alloc(sizeof(UtlIniValuePair), ALLOC_ZEROIZE)) != NULL)
-                {
-                    pair_ptr->key = utlMem_strdup(key_start);
-                    pair_ptr->value = utlMem_strdup(value_start);
-                    dlist_add(&pair_ptr->pair_node, &group_ptr->pair_head);
-                    group_ptr->pair_num++;
-                    utlLog_debug("%s%c%s", pair_ptr->key, delim_char, pair_ptr->value);
-                }
-                else
-                    goto error;
-            }
-            else
+            if (!handler(group, key, value, cxdata)) 
                 goto error;
         }
         else
             goto error;
     }
 
-    if(!func(&ini_group_head))
-        goto error;
-
-    utl_ini_cleanup(&ini_group_head);
     return TRUE;
 
 error:
     utlLog_error("ini config file parse error, please check config file!");
-    utl_ini_cleanup(&ini_group_head);
     return FALSE;
+}
+
+UBOOL8 utl_ini_parse_file(const char *filename, char comment_char, char delim_char, utl_ini_handler handler, void *cxdata)
+{
+    FILE *fp;
+    int len = 0;
+    char *buff = NULL;
+    UBOOL8 ret = FALSE;
+
+    if((fp = fopen(filename, "r")) == NULL)
+        return FALSE;
+    
+    fseek(fp, 0 , SEEK_END);
+    len = ftell(fp);
+    rewind(fp);
+    buff = (char *)utlMem_alloc(sizeof(char)*len + 1, ALLOC_ZEROIZE);
+    fread(buff, sizeof(char), len+1, fp);
+    fclose(fp);
+
+    ret = utl_ini_parse_buffer(buff, comment_char, delim_char, handler, cxdata);
+    utlMem_free(buff);
+
+    return ret;
 }

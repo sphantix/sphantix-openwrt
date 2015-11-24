@@ -38,6 +38,10 @@ endef
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/opsp-dltool.sh $(1)/usr/bin/opsp-dltool
+	$(INSTALL_DIR) $(1)/etc/crontabs
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/root $(1)/etc/crontabs
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/opsp-dltool.init $(1)/etc/init.d/opsp-dltool
 endef
 
 define Package/$(PKG_NAME)/postinst
@@ -45,7 +49,7 @@ define Package/$(PKG_NAME)/postinst
 touch /etc/crontabs/root
 r=`grep '/usr/bin/opsp-dltool' /etc/crontabs/root`
 if [ -z "$$r" ]; then
-echo '* * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root
+echo '*/1 * * * * /usr/bin/opsp-dltool' >> /etc/crontabs/root
 fi
 /etc/init.d/cron restart
 exit 0

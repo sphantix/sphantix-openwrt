@@ -101,7 +101,9 @@ void *utlMem_alloc(UINT32 size, UINT32 allocFlags)
     if (buf != NULL)
     {
         UINT32 *intBuf = (UINT32 *) buf;
-        UINT32 intSize = allocSize / sizeof(UINT32);
+#ifdef UTL_MEM_DEBUG
+        UINT32 intSize = allocSize / sizeof(UINTPTR);
+#endif
 
 
         if (allocFlags & ALLOC_ZEROIZE)

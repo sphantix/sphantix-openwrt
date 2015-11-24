@@ -13,6 +13,10 @@
 #ifndef __UTL_MEMORY_H__
 #define __UTL_MEMORY_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "utl.h"
 #include "./os/osl_memory.h"
 
@@ -110,7 +114,11 @@ void utlMem_dumpTraceClones();
  * The memory code assumes this value is 12, so you'll need to modify
  * utl_memory.c if you change this constant.
  */
+#if __WORDSIZE == 64
+#define UTL_MEM_HEADER_LENGTH   24 
+#else
 #define UTL_MEM_HEADER_LENGTH   12
+#endif
 
 
 /** How much debug information to put at the end of a malloc'd block,
@@ -119,7 +127,11 @@ void utlMem_dumpTraceClones();
  * The memory code assumes this value is 8, so you'll need to modify
  * utl_memory.c if you change this constant.
  */
+#if __WORDSIZE == 64
+#define UTL_MEM_FOOTER_LENGTH   16
+#else
 #define UTL_MEM_FOOTER_LENGTH   8
+#endif
 
 
 /** Pattern put at the memory block footer (to detect buffer over-write).
@@ -129,8 +141,19 @@ void utlMem_dumpTraceClones();
  * requested bytes and the 4 byte boundary are filled with the 
  * last byte of the UTL_MEM_FOOTER_PATTERN.
  */
+#if __WORDSIZE == 64
+#define UTL_MEM_FOOTER_PATTERN   0xfdfdfdfdfdfdfdfd
+#else
 #define UTL_MEM_FOOTER_PATTERN   0xfdfdfdfd
+#endif
 
+
+
+#if __WORDSIZE == 64
+#define UTL_MEM_HEADER_MASK   0xffffffffffffffff
+#else
+#define UTL_MEM_HEADER_MASK   0xffffffff
+#endif
 
 /** Pattern put in freshly allocated memory blocks, which do not have
  *  ALLOC_ZEROIZE flag set (to detect use before initialization.)
@@ -145,5 +168,9 @@ void utlMem_dumpTraceClones();
  * Used only if UTL_MEM_DEBUG is defined.
  */
 #define UTL_MEM_FREE_PATTERN     ((UINT8) 0x97)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UTL_MEMORY_H__ */

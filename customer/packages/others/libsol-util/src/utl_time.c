@@ -103,3 +103,10 @@ void utlTm_addMilliSeconds(UtlTimestamp *tms, UINT32 ms)
 
    return;
 }
+
+void utlTm_getFormatTimeString(char *buff, int len, const char *format)
+{
+    time_t clock;
+    time(&clock);
+    strftime(buff, len, format, localtime(&clock));
+}

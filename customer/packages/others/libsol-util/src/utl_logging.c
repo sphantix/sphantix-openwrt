@@ -18,6 +18,8 @@
 #include "utl_memory.h"
 #include "osl_logging.h"
 
+#define TIME_FORMAT "%Y/%m/%d %H:%M:%S"
+
 static UtlLogLevel                  logLevel;
 static UtlLogDestination            logDestination;
 static UINT32 logHeaderMask;
@@ -38,21 +40,34 @@ void utlLog_log(UtlLogLevel level, const char *func, UINT32 lineNum, const char 
     {
         va_start(ap, pFmt);
 
+         /*
+         * Log timestamp for both stderr and syslog because syslog's
+         * timestamp is when the syslogd gets the log, not when it was
+         * generated.
+         */
+        if ((logHeaderMask & UTLLOG_HDRMASK_TIMESTAMP) && (len < maxLen))
+        {
+            char tmbuff[BUFLEN_24] = {'\0'}; 
+            utlTm_getFormatTimeString(tmbuff, sizeof(tmbuff), TIME_FORMAT);
+
+            len = snprintf(buf, maxLen, "%s ", tmbuff);
+        }
+
         if (logHeaderMask & UTLLOG_HDRMASK_APPNAME)
         {
             if (utlStr_strlen(processName) != 0) 
-                len = snprintf(buf, maxLen, "%s:", processName);
+                len += snprintf(&(buf[len]), maxLen - len, "%s:", processName);
             else
-                len = snprintf(buf, maxLen, "unkown:");
+                len += snprintf(&(buf[len]), maxLen - len, "unkown:");
         }
 
         if ((logHeaderMask & UTLLOG_HDRMASK_LEVEL) && (len < maxLen))
         {
             /*
-             * Only log the severity level when going to stderr
+             * Only log the severity level when going to stderr or to file
              * because syslog already logs the severity level for us.
              */
-            if (logDestination == LOG_DEST_STDERR)
+            if (logDestination == LOG_DEST_STDERR || logDestination == LOG_DEST_FILE)
             {
                 switch(level)
                 {
@@ -71,20 +86,6 @@ void utlLog_log(UtlLogLevel level, const char *func, UINT32 lineNum, const char 
                 }
                 len += snprintf(&(buf[len]), maxLen - len, "%s:", logLevelStr);
             }
-        }
-
-        /*
-         * Log timestamp for both stderr and syslog because syslog's
-         * timestamp is when the syslogd gets the log, not when it was
-         * generated.
-         */
-        if ((logHeaderMask & UTLLOG_HDRMASK_TIMESTAMP) && (len < maxLen))
-        {
-            UtlTimestamp ts;
-
-            utlTm_get(&ts);
-            len += snprintf(&(buf[len]), maxLen - len, "%u.%03u:",
-                    ts.sec%1000, ts.nsec/NSECS_IN_MSEC);
         }
 
         if ((logHeaderMask & UTLLOG_HDRMASK_LOCATION) && (len < maxLen))
@@ -152,7 +153,7 @@ void utlLog_log(UtlLogLevel level, const char *func, UINT32 lineNum, const char 
         {
             oslLog_syslog(level, buf);
         }
-        else
+        else if (logDestination == LOG_DEST_FILE)
         {
             int logFileFd = -1;
             if (logFileName != NULL) 
@@ -187,12 +188,7 @@ void utlLog_init(void)
 void utlLog_cleanup(void)
 {
     oslLog_cleanup();
-
-    if (logFileName != NULL) 
-    {
-        utlMem_free(logFileName);
-        logFileName = NULL;
-    }
+    UTLMEM_FREE_BUF_AND_NULL_PTR(logFileName);
 
     return;
 }

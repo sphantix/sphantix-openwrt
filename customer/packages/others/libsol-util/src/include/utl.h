@@ -13,6 +13,10 @@
 #ifndef __UTL_H__
 #define __UTL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -51,5 +55,9 @@ typedef enum
 #define container_of(ptr, type, member) ({			\
         const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
         (type *)( (char *)__mptr - offsetof(type,member) );})
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __UTL_H__ */

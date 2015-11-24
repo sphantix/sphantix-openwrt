@@ -13,6 +13,10 @@
 #ifndef __UTL_ASSERT_H__
 #define __UTL_ASSERT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "utl.h"
 
 /** Check that an assumed condition is TRUE.
@@ -31,4 +35,9 @@
  *                        non-zero is pass.
  */
 void utlAst_assertFunc(const char *filename, UINT32 lineNumber, const char *exprString, SINT32 expr);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __UTL_ASSERT_H__ */

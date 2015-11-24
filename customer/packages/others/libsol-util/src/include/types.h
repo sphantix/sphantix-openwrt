@@ -13,7 +13,12 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>  /* for the various integer types */
+#include <stddef.h>  /* for intptr_t & uintptr_t */
 
 /*!\file types.h
  * \brief Various commonly used, but OS dependent definitions are defined here.
@@ -56,6 +61,12 @@ typedef char *     HEXBINARY;
 
 /* String representation of date and time. */
 typedef char *     DATETIME;
+
+/* pointer type */
+typedef intptr_t   SINTPTR;
+
+/* pointer type */
+typedef uintptr_t  UINTPTR;
 
 
 /* Invalid file descriptor number */
@@ -121,5 +132,9 @@ typedef char *     DATETIME;
 
 #define MAC_ADDR_LEN    6     //!< Mac address len in an array of 6 bytes
 #define MAC_STR_LEN     17    //!< Mac String len with ":". eg: xx:xx:xx:xx:xx:x
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __TYPES_H__ */

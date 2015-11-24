@@ -13,6 +13,10 @@
 #ifndef __UTL_LIST_H__
 #define __UTL_LIST_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "utl.h"
 
 /*!\file cms_dlist.h
@@ -733,5 +737,9 @@ static inline void hlist_move_list(struct hlist_head *old,
 	for (pos = hlist_entry_safe((head)->first, typeof(*pos), member);\
 	     pos && ({ n = pos->member.next; 1; });			\
 	     pos = hlist_entry_safe(n, typeof(*pos), member))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*__UTL_LIST_H__ */
