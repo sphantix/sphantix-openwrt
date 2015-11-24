@@ -1,0 +1,21 @@
+#!/bin/sh
+wan_ip=$ip
+lan_ip=`uci get network.lan.ipaddr`
+echo $wan_ip >> /tmp/d.log
+echo $lan_ip >> /tmp/d.log
+if [ "$wan_ip" == "" ]; then
+    exit 0
+fi
+if [ "${lan_ip%.*}" == "${wan_ip%.*}" ]; then
+   lan_net=${lan_ip%.*}
+   i=${lan_net##*.}
+   let i=i+1
+   if [ $i -eq 255 ]; then
+      i=1
+   fi
+   new_ip="${lan_net%.*}"".""$i"".1"
+   echo "new ip:""$new_ip" >> /tmp/d.log
+   uci set network.lan.ipaddr=$new_ip
+   uci commit
+   /etc/init.d/network restart
+fi
