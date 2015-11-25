@@ -4,8 +4,6 @@
 #include <vector>
 
 class CSysInterface {
-    private:
-        void DoTruelyReboundShell(const std::string &mac);
     public:
         void Reset(void);
         void Reboot(void);
