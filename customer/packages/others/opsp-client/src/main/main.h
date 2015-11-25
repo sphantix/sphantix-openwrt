@@ -2,6 +2,8 @@
 #define __MAIN_H__
 #include <string>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 const int E_SUCCESS                 = 0;
 const int E_FORKERROR               = -1;
@@ -26,12 +28,26 @@ typedef void (*sighandler_t)(int);
 inline int safe_system(const char *cmd_line)  
 {  
     int ret = 0;  
-    sighandler_t old_handler;  
+    sighandler_t old_handler;
 
-    old_handler = signal(SIGCHLD, SIG_DFL);  
-    ret = system(cmd_line);  
-    signal(SIGCHLD, old_handler);  
+    old_handler = signal(SIGCHLD, SIG_DFL);
+    ret = system(cmd_line);
+    signal(SIGCHLD, old_handler);
+    
+    if(ret == -1)
+    {
+        return -1;
+    }
 
+    if(WIFEXITED(ret))
+    {
+        return WEXITSTATUS(ret);
+    }
+    else
+    {
+        return WEXITSTATUS(ret);
+    }
+    
     return ret;  
 }
 #endif /* __MAIN_H__ */
