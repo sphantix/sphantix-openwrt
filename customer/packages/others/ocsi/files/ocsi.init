@@ -1,0 +1,16 @@
+#!/bin/sh /etc/rc.common
+#author zk
+
+
+START=97
+
+start(){
+    ocsi -c /etc/ocsi.conf &
+}
+stop(){
+    killall ocsi
+}
+restart(){
+    stop
+    start
+}
