@@ -3,3 +3,4 @@
 /linux/ramips/dts/MT7620a_32M.dts
 /linux/ramips/base-files/etc/shadow
 /linux/ramips/base-files/etc/wlan/
+/linux/ramips/base-files/etc/udhcpc.user
