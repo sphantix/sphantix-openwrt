@@ -19,7 +19,7 @@ void CFirmware::GetFirmwareName(std::string &firmware_url)
 
 void CFirmware::CleanUp(void)
 {
-    std::string cleanup_cmd = "rm -rf " + sFirmwarePath + sFirmwareName;
+    std::string cleanup_cmd = "rm -f " + sFirmwarePath + sFirmwareName;
     utlLog_debug("clean up ,cleanup_cmd = %s", cleanup_cmd.c_str());
     system(cleanup_cmd.c_str());
 }

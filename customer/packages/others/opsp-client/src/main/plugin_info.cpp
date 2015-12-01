@@ -68,7 +68,7 @@ bool CRetrunedPluginInfo::CheckPluginExist(void)
 
 void CRetrunedPluginInfo::CleanUp(void)
 {
-    std::string cleanup_cmd = "rm -rf " + sLocalSavePath + sDownloadFileName;
+    std::string cleanup_cmd = "rm -f " + sLocalSavePath + sDownloadFileName;
     utlLog_debug("clean up ,cleanup_cmd = %s", cleanup_cmd.c_str());
     system(cleanup_cmd.c_str());
 }
