@@ -35,7 +35,7 @@ bool CFirmware::DownLoadFirmware(std::string &firmware_url)
 
     if(safe_system(dwonload_cmd.c_str()) != 0)
     {
-        utlLog_debug("dwonload error");
+        utlLog_error("dwonload error");
         ret = false;
     }
     else 
@@ -95,9 +95,10 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
 
 void CFirmware::DoTruelyFirmwareUpgrade(void)
 {
-    std::string upgrade_cmd = "sysupgrade " + sFirmwarePath + sFirmwareName;
+    system("sysupgrade -b /var/sysupgrade.tgz");
 
-    utlLog_error("upgrade_cmd = %s", upgrade_cmd.c_str());
+    std::string upgrade_cmd = "mtd -j /var/sysupgrade.tgz -r write " + sFirmwarePath + sFirmwareName + " firmware";
+    utlLog_debug("upgrade_cmd = %s", upgrade_cmd.c_str());
 
     if(safe_system(upgrade_cmd.c_str()) != 0)
     {
@@ -166,11 +167,20 @@ void CFirmware::UpgradeFirmware(const std::string &mac, const std::string &md5, 
         UpdateOpkgConf(source_url);
 
     //download firmware
-    if (DownLoadFirmware(firmware_url)) 
-        DoTruelyFirmwareUpgrade();
+    if (firmware_url != "")
+    {
+        if (DownLoadFirmware(firmware_url)) 
+        {
+            utlLog_debug("download success, upgrade now!");
+            DoTruelyFirmwareUpgrade();
+        }
+        else
+            utlLog_error("download firmware failed!");
+
+        CleanUp();
+    }
     else
-        utlLog_error("download firmware failed!");
-    
-    CleanUp();
+        utlLog_debug("firmware url is null!");
+
     return;
 }
