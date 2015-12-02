@@ -37,7 +37,7 @@ class CRetrunedPluginInfo {
         void CleanUp(void);
         
     public:
-        CRetrunedPluginInfo(): sLocalSavePath("/var/"), nId(0), nAction(0), nOperationResult(0), sName(""), sVersion(""), sUrl(""), sOperationLog(""){}
+        CRetrunedPluginInfo(): sLocalSavePath("/tmp/"), nId(0), nAction(0), nOperationResult(0), sName(""), sVersion(""), sUrl(""), sOperationLog(""){}
         void Install(void);
         void Remove(void);
         void ReInstall(void);

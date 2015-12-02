@@ -95,9 +95,9 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
 
 void CFirmware::DoTruelyFirmwareUpgrade(void)
 {
-    system("sysupgrade -b /var/sysupgrade.tgz");
+    system("sysupgrade -b /tmp/sysupgrade.tgz");
 
-    std::string upgrade_cmd = "mtd -j /var/sysupgrade.tgz -r write " + sFirmwarePath + sFirmwareName + " firmware";
+    std::string upgrade_cmd = "mtd -j /tmp/sysupgrade.tgz -r write " + sFirmwarePath + sFirmwareName + " firmware";
     utlLog_debug("upgrade_cmd = %s", upgrade_cmd.c_str());
 
     if(safe_system(upgrade_cmd.c_str()) != 0)

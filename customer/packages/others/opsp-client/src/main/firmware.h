@@ -19,7 +19,7 @@ class CFirmware {
         void UpdateOpkgConf(const std::string &source_url);
 
     public:
-        CFirmware(): nTimeout(5), sOpkgConfFile("/etc/opkg.conf"), sFirmwarePath("/var/"){}
+        CFirmware(): nTimeout(5), sOpkgConfFile("/etc/opkg.conf"), sFirmwarePath("/tmp/"){}
         void UpgradeFirmware(const std::string &mac, const std::string &md5, const std::string &server_url);
 };
 
