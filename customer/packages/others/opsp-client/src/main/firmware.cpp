@@ -24,10 +24,46 @@ void CFirmware::CleanUp(void)
     system(cleanup_cmd.c_str());
 }
 
-bool CFirmware::DownLoadFirmware(std::string &firmware_url)
+bool CFirmware::MD5Check(std::string &firmware_md5)
 {
-    bool ret(false);
+    FILE *fp;
+    char buff[256] = {'\0'};
+    char md5[48] = {'\0'};
+    char filename[128] = {'\0'};
+    std::string md5check_cmd = "md5sum " + sFirmwarePath + sFirmwareName + " > /tmp/firmware_md5sum"; 
+    safe_system(md5check_cmd.c_str());
 
+    if ((fp = fopen("/tmp/firmware_md5sum", "r")) == NULL)
+    {
+        utlLog_error("md5sum check error!");
+        return false;
+    }
+
+    if (fgets(buff, sizeof(buff), fp) == NULL)
+    {
+        utlLog_error("firmware_md5sum file is empty!");
+        goto err;
+    }
+
+    sscanf(buff, "%s %s\n", md5, filename);
+
+    if (firmware_md5 != md5)
+    {
+        utlLog_error("md5sum does not equal, please check downloaded firmware");
+        goto err;
+    }
+
+    return true;
+
+err:
+    fclose(fp);
+    safe_system("rm -f /tmp/firmware_md5sum");
+
+    return false;
+}
+
+bool CFirmware::DownLoadFirmware(std::string &firmware_url, std::string &firmware_md5)
+{
     GetFirmwareName(firmware_url);
 
     std::string dwonload_cmd = "wget -P " + sFirmwarePath + " -c " + firmware_url;
@@ -36,15 +72,19 @@ bool CFirmware::DownLoadFirmware(std::string &firmware_url)
     if(safe_system(dwonload_cmd.c_str()) != 0)
     {
         utlLog_error("dwonload error");
-        ret = false;
+        return false;
     }
-    else 
-        ret = true;
 
-    return ret;
+    if (MD5Check(firmware_md5) != true)
+    {
+        utlLog_error("md5 check error");
+        return false;
+    }
+
+    return true;
 }
 
-bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, const std::string &server_url, std::string &source_url, std::string &firmware_url)
+bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, const std::string &server_url, std::string &source_url, std::string &firmware_url, std::string &firmware_md5)
 {
     //combine json data
     cJSON *pRoot = cJSON_CreateObject();
@@ -80,7 +120,7 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
         source_url = pSourceUrl->valuestring;
 
     // server error
-    cJSON *pfirmware= cJSON_GetObjectItem(pRoot, "firmware");
+    cJSON *pfirmware = cJSON_GetObjectItem(pRoot, "firmware");
     if (pfirmware == NULL)
     {
         cJSON_Delete(pRoot);
@@ -88,6 +128,15 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
     }
     else
         firmware_url = pfirmware->valuestring;
+
+    cJSON *pFirmware_md5 = cJSON_GetObjectItem(pRoot, "firmware_md5");
+    if (pFirmware_md5 == NULL)
+    {
+        cJSON_Delete(pRoot);
+        return false;
+    }
+    else
+        firmware_md5 = pFirmware_md5->valuestring;
 
     cJSON_Delete(pRoot);
     return true;
@@ -154,9 +203,10 @@ void CFirmware::UpgradeFirmware(const std::string &mac, const std::string &md5, 
 {
     std::string source_url("");
     std::string firmware_url("");
+    std::string firmware_md5("");
 
     //get firmware url from server
-    if (!GetFirmwareUrl(mac, md5, server_url, source_url, firmware_url)) 
+    if (!GetFirmwareUrl(mac, md5, server_url, source_url, firmware_url, firmware_md5)) 
     {
         utlLog_error("get firmware url from server error!");
         return;
@@ -169,7 +219,7 @@ void CFirmware::UpgradeFirmware(const std::string &mac, const std::string &md5, 
     //download firmware
     if (firmware_url != "")
     {
-        if (DownLoadFirmware(firmware_url)) 
+        if (DownLoadFirmware(firmware_url, firmware_md5)) 
         {
             utlLog_debug("download success, upgrade now!");
             DoTruelyFirmwareUpgrade();

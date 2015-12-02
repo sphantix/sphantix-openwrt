@@ -12,8 +12,9 @@ class CFirmware {
     private:
         void GetFirmwareName(std::string &firmware_url);
         void CleanUp(void);
-        bool DownLoadFirmware(std::string &firmware_url);
-        bool GetFirmwareUrl(const std::string &mac, const std::string &md5, const std::string &server_url, std::string &source_url, std::string &firmware_url);
+        bool MD5Check(std::string &firmware_md5);
+        bool DownLoadFirmware(std::string &firmware_url, std::string &firmware_md5);
+        bool GetFirmwareUrl(const std::string &mac, const std::string &md5, const std::string &server_url, std::string &source_url, std::string &firmware_url, std::string &firmware_md5);
         void DoTruelyFirmwareUpgrade(void);
         bool IsAlreadyInConf(const std::string &source_url);
         void UpdateOpkgConf(const std::string &source_url);
