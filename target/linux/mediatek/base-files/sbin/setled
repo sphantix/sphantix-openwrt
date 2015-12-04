@@ -1,0 +1,91 @@
+#!/bin/sh
+
+. /lib/mediatek.sh
+
+inet_func_file="/lib/functions/net_update_actions.sh"
+if [ -f $inet_func_file ]; then
+. $inet_func_file
+fi
+
+bdname=$(tw_board_name)
+
+case "$bdname" in
+*)
+	bdname="mtk"
+	;;
+esac
+
+led_set_attr() {
+	[ -f "/sys/class/leds/$1/$2" ] && echo "$3" > "/sys/class/leds/$1/$2" 2>/dev/null
+}
+
+timer() {
+	led_set_attr $1 "brightness" "255"
+	led_set_attr $1 "trigger" "timer"
+	led_set_attr $1 "delay_on" "$2"
+	led_set_attr $1 "delay_off" "$3"
+}
+
+on() {
+	led_set_attr $1 "brightness" "255"
+	led_set_attr $1 "trigger" "default-on"
+}
+
+off() {
+	led_set_attr $1 "brightness" "0"
+	led_set_attr $1 "trigger" "none"
+}
+
+extra_trigger() {
+#	It will right up the wifi led, even if the wifi is closed.
+#	led_set_attr $1 "brightness" "255"
+	led_set_attr $1 "trigger" "$2"
+}
+
+# $1 on/off
+# $2 save
+all() {
+	case "$1" in
+	"off")
+		if [ "$2" == "save" ]; then
+			uci set hiwifi.led.state=0
+			uci commit hiwifi
+		fi
+		echo 0 >/proc/hiwifi/eth_led
+		ls_file=$(ls -l /sys/class/leds)
+		for filename in $ls_file
+		do
+			off "$filename"
+		done
+		;;
+	"on")
+		if [ "$2" == "save" ]; then
+			uci set hiwifi.led.state=1
+			uci commit hiwifi
+		fi
+		echo 1 >/proc/hiwifi/eth_led
+		/etc/init.d/led start
+		ls_file=$(ls /sys/class/leds)
+		for filename in $ls_file
+		do
+			case "$filename" in
+			*"internet")
+				net_internet_led_set "on"
+				;;
+			*"system")
+				timer "$filename" 1000 1000
+				;;
+			*"turbo")
+				turbo_led_op
+				;;
+			esac
+		done
+		;;
+	esac
+}
+
+if [ "$1" == "all" ]; then
+	$1 $2 $3
+else
+	$1 "$bdname:$2:$3" $4 $5
+fi

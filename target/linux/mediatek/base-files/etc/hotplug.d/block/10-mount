@@ -1,0 +1,169 @@
+#!/bin/sh
+# Copyright (C) 2012-2014 www.hiwifi.com
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+blkdev=`dirname $DEVPATH`
+device=`basename $DEVPATH`
+dev_path="/dev/$device"
+
+source /lib/functions/storage.sh
+
+case "$device" in
+"sd"* | "mmcblk"*)
+	hiwifi_storage_log "handle $ACTION $device"
+
+	case "$ACTION" in
+	add)
+		ID_FS_TYPE=""
+		eval `blkid -o udev $dev_path`
+
+		case "$device" in
+		"mmcblk0")
+			hiwifi_set_format_data_flag "0"
+			hiwifi_storage_log "sd log start with $device"
+			hiwifi_storage_state_set "inserted"
+			# record total size
+			hiwifi_storage_total_size "$MAJOR" "$MINOR"
+			
+			sd_check_size
+			if [ "$?" -eq 1 ]; then
+				hiwifi_storage_state_set "not-formated"
+				exit
+			fi
+			
+			fdisk -l $dev_path | grep mmcblk0p1
+			[ $? -ne 0 ] && hiwifi_partition "/dev/mmcblk0"
+
+			ro_stat=$(sd_ro_state)
+
+			if [ "$ro_stat" -eq "1" ]; then
+				hiwifi_storage_log "device is locked"
+				hiwifi_state_set "lock"
+				exit
+			fi
+
+			#If /dev/mmcblk0 is the only partition with FAT32 format, fdisk will not parse it correctly.
+			fdisk -l $dev_path | grep mmcblk0p1 | grep -i Unknown
+			if [ $? -eq 0 ]; then
+				hiwifi_storage_log "only one partition(not-formated)"
+				hiwifi_storage_state_set "not-formated"
+			fi
+			;;
+		"mmcblk0p1")
+			local hwf_mount_point="$STORAGE_MOUNT_PREFIX/$device"
+			
+			sd_check_size
+			if [ "$?" -eq 1 ]; then
+				hiwifi_storage_state_set "not-formated"
+				exit
+			fi
+
+			ro_stat=$(sd_ro_state)
+			if [ "$ro_stat" -eq "1" ]; then
+				hiwifi_storage_log "device is locked"
+				hiwifi_storage_state_set "lock"
+				exit
+			fi
+
+			hiwifi_mount_fs "$dev_path" "$ID_FS_TYPE" "$hwf_mount_point"
+
+			if [ $? -eq 0 ]; then
+				hiwifi_storage_log "mount $dev_path($ID_FS_TYPE) to $hwf_mount_point success"
+				cnt=$(ls $hwf_mount_point | grep -v -E "^(lost\+found|System Volume Information|var|cron|traffic_|p2p|cloud|hwf_|cmagent|mtd_log_*|sysupgrade_log|usr|aria2|hiwifi*|twx|.*\.core|.*\.log)" | wc -l)
+				if [ $cnt -eq 0 ]; then
+					hiwifi_storage_log "no msg in $dev_path"
+					umount $hwf_mount_point
+					[ $? -ne 0 ] && hiwifi_storage_log "umount $hwf_mount_point failed!"
+					hiwifi_partition "/dev/mmcblk0"
+				else
+					hiwifi_storage_log "old msg in $dev_path(not-formated)"
+					#TODO: Use the old file system now, since there are user data in it.
+					umount $hwf_mount_point
+				fi
+			else
+				hiwifi_storage_log "mount $dev_path($ID_FS_TYPE) to $hwf_mount_point failed"
+				hiwifi_sd_mount_cryptdata
+				[ $? -ne 0 ] && {
+					hiwifi_storage_log "start partition(not-formated)"
+					hiwifi_partition "/dev/mmcblk0"
+				}
+			fi
+			hiwifi_storage_state_set "not-formated"
+			;;
+		"mmcblk0p2")
+			local hwf_mount_point="$STORAGE_MOUNT_PREFIX/$device"
+			ro_stat=$(sd_ro_state)
+			if [ "$ro_stat" -eq "1" ]; then
+				hiwifi_storage_log "device is locked"
+				hiwifi_storage_state_set "lock"
+				exit
+			fi
+
+			if [ -n "$(mount | grep cryptdata)" ]; then
+				hiwifi_mount_with_ext4 "$dev_path" "$hwf_mount_point" "$ID_FS_TYPE" "1"
+				[ $? -eq 0 ] && hiwifi_start_storage "$dev_path" "$hwf_mount_point"
+			else
+				hiwifi_storage_log "no cryptdata"
+				hiwifi_storage_state_set "not-formated"
+				if [ -f $STORAGE_NOT_ALIGED_FILE ]; then
+					rm -f $STORAGE_NOT_ALIGED_FILE
+				else
+					sd_not_formated_hook
+				fi
+			fi
+			;;
+		"sd"*)
+			hiwifi_storage_handle "$dev_path" "$ACTION" "$device" "$ID_FS_TYPE"
+		esac
+		;;
+	remove)
+		case "$device" in
+		"mmcblk0")
+			hiwifi_storage_state_set "removed"
+			;;
+		"mmcblk0p1")
+			hiwifi_umount_partition "$CRYPT_MOUNT_POINT" "cryptdata"
+			hiwifi_storage_state_set "removed"
+			;;
+		"mmcblk0p2")
+			data_partitions=$(mount | grep "$device" | wc -l)
+			while [ $data_partitions -gt 0  ]
+			do
+				dev_mount=$(mount | grep "$device" | awk '{print $3}' | head -$data_partitions | tail -1)
+				hiwifi_umount_partition "$dev_mount" "sddata"
+				data_partitions=$(($data_partitions-1))
+			done
+			hiwifi_storage_state_set "removed"
+			;;
+		"sd"*)
+			hiwifi_storage_handle "$dev_path" "$ACTION" "$device"
+			;;
+		esac
+		;;
+	offline)
+		[ -z $FS_DEV ] && exit 0
+		hiwifi_storage_handle_offline "$FS_DEV"
+		;;
+	error)
+		# avoid too many hotplugs
+		echo 100 >/sys/block/$device/notify_error
+		s_state=$(hiwifi_storage_get_state)
+		hiwifi_storage_log "$device runtime error ($s_state)"
+		case "$s_state" in
+		"removed")
+			# avoid remove unsuccessful
+			hiwifi_remove_handle "sd"
+			hiwifi_storage_state_set "$s_state"
+			;;
+		"mounted")
+			# handle runtime error
+			hiwifi_remove_handle "sd"
+			hiwifi_storage_state_set "rerror"
+			;;
+		esac
+	esac
+	;;
+esac
+
