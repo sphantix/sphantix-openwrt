@@ -133,7 +133,7 @@ define BuildFirmware/hiwifi
 	@mv $(call sysupname,$(1),$(2)) $(call sysupstore,$(1),$(2))
 	@mv $(call flashsmtname,$(1),$(2)) $(call flashsmtstore,$(1),$(2))
 	@cp -f $(BIN_DIR)/$(IMG_PREFIX)-$(2)-uboot.bin $(BIN_DIR)/$(BIN_DATE_DIR)/$(IMG_PREFIX)-$(2)-uboot.bin
-	(cd $(DEBUG_TARGET_DIR); tar -czf $(BIN_DIR)/$(BIN_DATE_DIR)/debug-root-$(REVISION)-$(BOARD)-$(2).tgz *)
+	(cd $(DEBUG_TARGET_DIR);cp -f $(KDIR)/vmlinux $(DEBUG_TARGET_DIR); tar -czf $(BIN_DIR)/$(BIN_DATE_DIR)/debug-root-$(REVISION)-$(BOARD)-$(2).tgz *)
 	(mkdir -p $(BIN_DIR)/debug-root)
 	(cp -rf $(BIN_DIR)/$(BIN_DATE_DIR)/debug-root-$(REVISION)-$(BOARD)-$(2).tgz $(BIN_DIR)/debug-root/debug-root-$(REVISION)-$(BOARD)-$(2).tgz)
 endef

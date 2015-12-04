@@ -32,6 +32,8 @@ if [[ "$?" -eq "0" ]]; then
 	umount /proc
 	exec switch_root /mnt /etc/preinit
 else
+	hiwifi_err_log_clear
+	hiwifi_board_detect
 	mount_storage
 
 	if [[ -f "$HIWIFI_ROM" -a -f "$HIWIFI_ROM_MD5" ]]; then
@@ -39,11 +41,21 @@ else
 		if [[ "$?" -eq 0 ]]; then
 			hiwifi_do_upgrade "$HIWIFI_ROM"
 			if [[ "$?" -eq "0" ]]; then
+				hiwifi_record_count_log
 				touch /tmp/sysupgrade
+			else
+				hiwifi_err_log "upgrade failed"
 			fi
+		else
+			hiwifi_err_log "md5sum -c -s $HIWIFI_ROM_MD5 failed"
 		fi
+		sync
+
 		exec /sbin/init
 	else
+		hiwifi_err_log "no $HIWIFI_ROM in storage"
+		sync
+
 		exec /sbin/init
 	fi
 fi

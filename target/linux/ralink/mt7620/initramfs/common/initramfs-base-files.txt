@@ -29,4 +29,5 @@ nod /dev/mtd9 666 0 0 c 90 18
 nod /dev/mmcblk0 666 0 0 b 179 0
 nod /dev/mmcblk0p1 666 0 0 b 179 1
 nod /dev/mmcblk0p2 666 0 0 b 179 2
+nod /dev/sda2 666 0 0 b 8 2
 dir /dev/pts 755 0 0

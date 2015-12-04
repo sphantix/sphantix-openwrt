@@ -10,7 +10,7 @@ ARCH:=mipsel
 BOARD:=ralink
 BOARDNAME:=Ralink Soc
 SUBTARGETS:=mt7620 mt7620a-custom
-CFLAGS:=-Os -pipe -mips32r2 -mtune=mips32r2 -fno-caller-saves
+CFLAGS:=-Os -pipe -mips32r2 -mtune=24kec -mdsp -fno-caller-saves
 FEATURES:=squashfs
 
 LINUX_VERSION:=3.3.8

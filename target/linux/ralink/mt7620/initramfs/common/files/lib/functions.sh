@@ -2,6 +2,28 @@
 
 PART_NAME=firmware
 
+HIWIFI_ROM_LOG="/tmp/data/hiwifi/rom_recovery.log"
+HIWIFI_ROM_ERR_LOG="/tmp/data/hiwifi/rom_recovery_err.log"
+
+hiwifi_err_log_clear() {
+	rm -f $HIWIFI_ROM_ERR_LOG 2>/dev/null
+}
+
+hiwifi_err_log() {
+	echo "$@" >>$HIWIFI_ROM_ERR_LOG
+}
+
+hiwifi_record_count_log() {
+	local count=$(cat $HIWIFI_ROM_LOG 2>/dev/null)
+
+	if [ -z "$count" ]; then
+		echo "1" >$HIWIFI_ROM_LOG
+	else
+		count=`expr $count + 1`
+		echo "$count" >$HIWIFI_ROM_LOG
+	fi
+}
+
 find_mtd_part() {
 	local PART="$(grep "\"$1\"" /proc/mtd | awk -F: '{print $1}')"
 	local PREFIX=/dev/mtdblock
@@ -17,8 +39,17 @@ create_link() {
 }
 
 check_storage() {
-	dev_path="/dev/mmcblk0p2"
-	dev_mount="/tmp/mmcblk0p2"
+	local board=$(hiwifi_board_name)
+	local dev_path="/dev/mmcblk0p2"
+	local dev_mount="/tmp/mmcblk0p2"
+
+	case "$board" in
+	HC5663)
+		dev_path="/dev/sda2"
+		dev_mount="/tmp/sda2"
+		;;
+	esac
+
 	mkdir -p $dev_mount
 	mount -t ext4 -o noatime "$dev_path" "$dev_mount"
 	if [ "$?" -eq "0" ]; then
@@ -64,6 +95,12 @@ hiwifi_board_detect() {
 	*"Hiwifi Wireless HC5761 Board")
 		name="HC5761"
 		;;
+	*"HiWiFi Wireless HC5663 Board")
+		name="HC5663"
+		;;
+	*"HiWiFi Wireless HB5881 Board")
+		name="HB5881"
+		;;		
 	esac
 
 	[ -z "$name" ] && name="unkown"
@@ -123,13 +160,13 @@ hiwifi_check_image() {
 	local pdtname_smt=$(get_board_name_smt "$1" | cut -c 1-"$board_len")
 
 	case "$board" in
-	HC5661 | HC5761)
+	HC5661 | HC5761 | HC5663 | HB5881)
 		[ "$magic_long" != "27051956" -a "$magic" != "2705" -a "$magic_boot" != "ff00001000000000fd00001000000000" ] && {
-			echo "Invalid image type."
+			hiwifi_err_log "Invalid image type."
 			return 1
 		}
 		[ "$pdtname_up" != "$board" -a "$pdtname_smt" != "$board" ] && {
-			echo "Invalid image board."
+			hiwifi_err_log "Invalid image board."
 			return 1
 		}
 		[ "$magic_boot" == "ff00001000000000fd00001000000000" ] && {
@@ -140,7 +177,7 @@ hiwifi_check_image() {
 		;;
 	esac
 
-	echo "Sysupgrade is not yet supported on $board."
+	hiwifi_err_log "upgrade is not yet supported on $board."
 	return 1
 }
 
@@ -202,17 +239,16 @@ hiwifi_led_off() {
 
 hiwifi_do_upgrade() {
 	local upgrade_ret=1
-	hiwifi_board_detect
 	hiwifi_check_image "$1"
 	if [ "$?" -eq 1 ]; then
 		return 1
 	fi
 
 	case "$board" in
-	HC5761)
+	HC5761 | HB5881)
 		blink_led_with_num 4
 		;;
-	HC5661)
+	HC5661 | HC5663)
 		blink_led_with_num 3
 		;;
 	esac
@@ -225,6 +261,10 @@ hiwifi_do_upgrade() {
 			get_image "$1" | dd bs=2k skip=160 conv=sync 2>/dev/null | mtd -q write - "${PART_NAME:-image}"
 		fi
 		upgrade_ret=$?
+
+		if [ "$upgrade_ret" -ne "0" ]; then
+			hiwifi_err_log "mtd write failed $upgrade_ret"
+		fi
 	fi
 
 	hiwifi_led_off
