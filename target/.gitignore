@@ -4,3 +4,11 @@
 /linux/ramips/base-files/etc/shadow
 /linux/ramips/base-files/etc/wlan/
 /linux/ramips/base-files/etc/udhcpc.user
+/linux/ramips/base-files/etc/01_leds
+/linux/ramips/base-files/etc/02_network
+/linux/ramips/base-files/etc/uci-defaults/disable-pdnsd
+/linux/ramips/dts/HC5661.dts
+/linux/ramips/dts/HC5761.dts
+/linux/ramips/dts/HC5861.dts
+/linux/ramips/dts/HC5XXX.dtsi
+/linux/ramips/mt7620a/profiles/hiwifi.mk
