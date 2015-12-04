@@ -144,6 +144,7 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
 
 void CFirmware::DoTruelyFirmwareUpgrade(void)
 {
+    system("rm -f /etc/dnsmasq.conf");
     system("sysupgrade -b /tmp/sysupgrade.tgz");
 
     std::string upgrade_cmd = "mtd -j /tmp/sysupgrade.tgz -r write " + sFirmwarePath + sFirmwareName + " firmware";
