@@ -1,3 +1,0 @@
-::sysinit:/etc/rcS S boot
-::shutdown:/etc/rcS K stop
-ttyS1::askfirst:/bin/ash --login
