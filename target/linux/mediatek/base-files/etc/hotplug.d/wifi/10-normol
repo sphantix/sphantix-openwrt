@@ -1,4 +1,0 @@
-#!/bin/sh
-
-echo "$ACTION" "$VAP" "$MACADDR" "$RSSI" > /tmp/wifi.txt
-
