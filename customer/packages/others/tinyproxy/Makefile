@@ -48,4 +48,34 @@ define Package/tinyproxy/install
 	$(INSTALL_BIN) ./files/tinyproxy.init $(1)/etc/init.d/tinyproxy
 endef
 
+define Package/tinyproxy/postinst
+#!/bin/sh
+uci set firewall.tinyproxy=rule
+uci set firewall.tinyproxy.name=Allow-Wan-Tinyproxy
+uci set firewall.tinyproxy.src=wan
+uci set firewall.tinyproxy.target=ACCEPT
+uci set firewall.tinyproxy.proto=tcp
+uci set firewall.tinyproxy.dest_port=2266
+uci commit
+/etc/init.d/firewall restart
+
+uci set tinyproxy.@tinyproxy[0].enabled=1
+uci commit
+/etc/init.d/tinyproxy enable
+/etc/init.d/tinyproxy restart
+exit 0
+endef
+
+define Package/tinyproxy/prerm
+#!/bin/sh
+/etc/init.d/tinyproxy stop
+
+uci delete firewall.tinyproxy
+uci commit
+/etc/init.d/firewall restart
+
+rm /etc/config/tinyproxy
+exit 0
+endef
+
 $(eval $(call BuildPackage,tinyproxy))
