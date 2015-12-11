@@ -10,30 +10,57 @@
 #include "cJSON.h"
 #include "restclient.h"
 
-void CFirmware::GetFirmwareName(std::string &firmware_url)
+void CFirmware::GetFileName(eFirmwareType type, std::string &url)
 {
-    std::size_t found = firmware_url.find_last_of("/");
-    sFirmwareName = firmware_url.substr(found + 1);
-    utlLog_debug("filename = %s", sFirmwareName.c_str());
+    std::size_t found = url.find_last_of("/");
+    std::string filename = url.substr(found + 1);
+    
+    if (type == eUboot)
+        sUbootName = filename;
+    else if (type == eFirmware)
+        sFirmwareName = filename;
+
+    utlLog_debug("filename = %s", filename.c_str());
 }
 
-void CFirmware::CleanUp(void)
+void CFirmware::CleanUp(eFirmwareType type)
 {
-    std::string cleanup_cmd = "rm -f " + sFirmwarePath + sFirmwareName;
-    utlLog_debug("clean up ,cleanup_cmd = %s", cleanup_cmd.c_str());
-    system(cleanup_cmd.c_str());
+    std::string cleanup_cmd("");
+
+    if (type == eUboot)
+        cleanup_cmd = "rm -f " + sFirmwarePath + sUbootName;
+    else if (type == eFirmware)
+        cleanup_cmd = "rm -f " + sFirmwarePath + sFirmwareName;
+
+    if (cleanup_cmd != "")
+    {
+        utlLog_debug("clean up ,cleanup_cmd = %s", cleanup_cmd.c_str());
+        system(cleanup_cmd.c_str());
+    }
 }
 
-bool CFirmware::MD5Check(std::string &firmware_md5)
+bool CFirmware::MD5Check(eFirmwareType type, std::string &md5sum)
 {
     FILE *fp;
     char buff[256] = {'\0'};
     char md5[48] = {'\0'};
     char filename[128] = {'\0'};
-    std::string md5check_cmd = "md5sum " + sFirmwarePath + sFirmwareName + " > /tmp/firmware_md5sum"; 
+    std::string md5check_cmd("");
+    
+    if (type == eUboot)
+        md5check_cmd = "md5sum " + sFirmwarePath + sUbootName + " > /tmp/md5sum"; 
+    else if (type == eFirmware)
+        md5check_cmd = "md5sum " + sFirmwarePath + sFirmwareName + " > /tmp/md5sum"; 
+
+    if (md5check_cmd == "")
+    {
+        utlLog_error("input type error!");
+        return false;
+    }
+
     safe_system(md5check_cmd.c_str());
 
-    if ((fp = fopen("/tmp/firmware_md5sum", "r")) == NULL)
+    if ((fp = fopen("/tmp/md5sum", "r")) == NULL)
     {
         utlLog_error("md5sum check error!");
         return false;
@@ -41,15 +68,15 @@ bool CFirmware::MD5Check(std::string &firmware_md5)
 
     if (fgets(buff, sizeof(buff), fp) == NULL)
     {
-        utlLog_error("firmware_md5sum file is empty!");
+        utlLog_error("md5sum file is empty!");
         goto err;
     }
 
     sscanf(buff, "%s %s\n", md5, filename);
 
-    if (firmware_md5 != md5)
+    if (md5sum != md5)
     {
-        utlLog_error("md5sum does not equal, please check downloaded firmware");
+        utlLog_error("%s md5sum does not equal, please check downloaded file", filename);
         goto err;
     }
 
@@ -62,11 +89,11 @@ err:
     return false;
 }
 
-bool CFirmware::DownLoadFirmware(std::string &firmware_url, std::string &firmware_md5)
+bool CFirmware::DownLoadFile(eFirmwareType type, std::string &url, std::string &md5sum)
 {
-    GetFirmwareName(firmware_url);
+    GetFileName(type, url);
 
-    std::string dwonload_cmd = "wget -P " + sFirmwarePath + " -c " + firmware_url;
+    std::string dwonload_cmd = "wget -P " + sFirmwarePath + " -c " + url;
     utlLog_debug("dwonload_cmd = %s", dwonload_cmd.c_str());
 
     if(safe_system(dwonload_cmd.c_str()) != 0)
@@ -75,7 +102,7 @@ bool CFirmware::DownLoadFirmware(std::string &firmware_url, std::string &firmwar
         return false;
     }
 
-    if (MD5Check(firmware_md5) != true)
+    if (MD5Check(type, md5sum) != true)
     {
         utlLog_error("md5 check error");
         return false;
@@ -84,7 +111,7 @@ bool CFirmware::DownLoadFirmware(std::string &firmware_url, std::string &firmwar
     return true;
 }
 
-bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, const std::string &server_url, std::string &source_url, std::string &firmware_url, std::string &firmware_md5)
+bool CFirmware::GetUpgradeInfo(const std::string &mac, const std::string &md5, const std::string &server_url, CUpgradeInfo &upgrade_info)
 {
     //combine json data
     cJSON *pRoot = cJSON_CreateObject();
@@ -115,19 +142,16 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
     if (pRoot == NULL)
         return false;
 
-    cJSON *pSourceUrl = cJSON_GetObjectItem(pRoot, "source_url");
-    if (pSourceUrl != NULL) 
-        source_url = pSourceUrl->valuestring;
 
     // server error
-    cJSON *pfirmware = cJSON_GetObjectItem(pRoot, "firmware");
-    if (pfirmware == NULL)
+    cJSON *pFirmwareUrl = cJSON_GetObjectItem(pRoot, "firmware");
+    if (pFirmwareUrl == NULL)
     {
         cJSON_Delete(pRoot);
         return false;
     }
     else
-        firmware_url = pfirmware->valuestring;
+        upgrade_info.sFirmwareUrl = pFirmwareUrl->valuestring;
 
     cJSON *pFirmware_md5 = cJSON_GetObjectItem(pRoot, "firmware_md5");
     if (pFirmware_md5 == NULL)
@@ -136,18 +160,60 @@ bool CFirmware::GetFirmwareUrl(const std::string &mac, const std::string &md5, c
         return false;
     }
     else
-        firmware_md5 = pFirmware_md5->valuestring;
+        upgrade_info.sFirmwareMd5 = pFirmware_md5->valuestring;
+
+    cJSON *pSaveConfig = cJSON_GetObjectItem(pRoot, "save_config");
+    if (pSaveConfig == NULL)
+    {
+        cJSON_Delete(pRoot);
+        return false;
+    }
+    else
+        upgrade_info.nSaveConfig = pSaveConfig->valueint;
+
+    //optional sections
+    cJSON *pUbootUrl= cJSON_GetObjectItem(pRoot, "uboot");
+    if (pUbootUrl != NULL)
+        upgrade_info.sUbootUrl = pUbootUrl->valuestring; 
+
+    cJSON *pUboot_md5 = cJSON_GetObjectItem(pRoot, "uboot_md5");
+    if (pUboot_md5 != NULL)
+        upgrade_info.sUbootMd5 = pUboot_md5->valuestring;
+
+    cJSON *pSourceUrl = cJSON_GetObjectItem(pRoot, "source_url");
+    if (pSourceUrl != NULL) 
+        upgrade_info.sSourceUrl = pSourceUrl->valuestring;
 
     cJSON_Delete(pRoot);
     return true;
 }
 
-void CFirmware::DoTruelyFirmwareUpgrade(void)
+void CFirmware::DoTruelyUpgrade(eFirmwareType type, int save_config)
 {
-    system("rm -f /etc/dnsmasq.conf");
-    system("sysupgrade -b /tmp/sysupgrade.tgz");
+    std::string upgrade_cmd("");
 
-    std::string upgrade_cmd = "mtd -j /tmp/sysupgrade.tgz -r write " + sFirmwarePath + sFirmwareName + " firmware";
+    if (type == eUboot)
+    {
+        upgrade_cmd = "mtd write " + sFirmwarePath + sUbootName + " Bootloader";
+    }
+    else if (type == eFirmware)
+    {
+        if (save_config)
+        {
+            system("rm -f /etc/dnsmasq.conf");
+            system("sysupgrade -b /tmp/sysupgrade.tgz");
+            upgrade_cmd = "mtd -j /tmp/sysupgrade.tgz -r write " + sFirmwarePath + sFirmwareName + " firmware";
+        }
+        else
+            upgrade_cmd = "mtd -r write " + sFirmwarePath + sFirmwareName + " firmware";
+    }
+
+    if (upgrade_cmd == "")
+    {
+        utlLog_error("input type error!");
+        return;
+    }
+
     utlLog_debug("upgrade_cmd = %s", upgrade_cmd.c_str());
 
     if(safe_system(upgrade_cmd.c_str()) != 0)
@@ -202,36 +268,51 @@ void CFirmware::UpdateOpkgConf(const std::string &source_url)
 
 void CFirmware::UpgradeFirmware(const std::string &mac, const std::string &md5, const std::string &server_url)
 {
-    std::string source_url("");
-    std::string firmware_url("");
-    std::string firmware_md5("");
+    CUpgradeInfo upgrade_info;
 
     //get firmware url from server
-    if (!GetFirmwareUrl(mac, md5, server_url, source_url, firmware_url, firmware_md5)) 
+    if (!GetUpgradeInfo(mac, md5, server_url, upgrade_info)) 
     {
         utlLog_error("get firmware url from server error!");
         return;
     }
 
     //update opkg source
-    if (source_url != "") 
-        UpdateOpkgConf(source_url);
+    if (upgrade_info.sSourceUrl != "") 
+        UpdateOpkgConf(upgrade_info.sSourceUrl);
+
+    //upgrade uboot
+    if ((upgrade_info.sUbootUrl != "") && (upgrade_info.sUbootMd5 != ""))
+    {
+        if (DownLoadFile(eUboot, upgrade_info.sUbootUrl, upgrade_info.sUbootMd5)) 
+        {
+            utlLog_debug("download uboot success, upgrade now!");
+            DoTruelyUpgrade(eUboot, 0);
+        }
+        else
+            utlLog_error("download uboot failed!");
+
+        CleanUp(eUboot);
+    }
+    else
+        utlLog_debug("skip uboot upgrade");
+        
 
     //download firmware
-    if (firmware_url != "")
+    if ((upgrade_info.sFirmwareUrl != "") && (upgrade_info.sFirmwareMd5 != ""))
     {
-        if (DownLoadFirmware(firmware_url, firmware_md5)) 
+        if (DownLoadFile(eFirmware, upgrade_info.sFirmwareUrl, upgrade_info.sFirmwareMd5)) 
         {
             utlLog_debug("download success, upgrade now!");
-            DoTruelyFirmwareUpgrade();
+            DoTruelyUpgrade(eFirmware, upgrade_info.nSaveConfig);
         }
         else
             utlLog_error("download firmware failed!");
 
-        CleanUp();
+        CleanUp(eFirmware);
     }
     else
-        utlLog_debug("firmware url is null!");
+        utlLog_debug("firmware parameter missing, upgrade fail!");
 
     return;
 }

@@ -2,20 +2,35 @@
 #define __FIRMWARE_H__
 #include <string>
 
+class CUpgradeInfo {
+    public:
+        int nSaveConfig; 
+        std::string sSourceUrl;
+        std::string sFirmwareUrl;
+        std::string sFirmwareMd5;
+        std::string sUbootUrl;
+        std::string sUbootMd5;
+};
+
 class CFirmware {
     private:
+        typedef enum {
+            eUboot,
+            eFirmware,
+        } eFirmwareType;
+
         int nTimeout;
         std::string sOpkgConfFile;
         std::string sFirmwarePath;
         std::string sFirmwareName;
+        std::string sUbootName;
 
-    private:
-        void GetFirmwareName(std::string &firmware_url);
-        void CleanUp(void);
-        bool MD5Check(std::string &firmware_md5);
-        bool DownLoadFirmware(std::string &firmware_url, std::string &firmware_md5);
-        bool GetFirmwareUrl(const std::string &mac, const std::string &md5, const std::string &server_url, std::string &source_url, std::string &firmware_url, std::string &firmware_md5);
-        void DoTruelyFirmwareUpgrade(void);
+        void GetFileName(eFirmwareType type, std::string &url);
+        void CleanUp(eFirmwareType type);
+        bool MD5Check(eFirmwareType type, std::string &md5sum);
+        bool DownLoadFile(eFirmwareType type, std::string &url, std::string &md5sum);
+        bool GetUpgradeInfo(const std::string &mac, const std::string &md5, const std::string &server_url, CUpgradeInfo &upgrade_info);
+        void DoTruelyUpgrade(eFirmwareType type, int save_config);
         bool IsAlreadyInConf(const std::string &source_url);
         void UpdateOpkgConf(const std::string &source_url);
 
