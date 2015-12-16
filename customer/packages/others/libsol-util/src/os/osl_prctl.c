@@ -16,15 +16,28 @@
 
 void oslPrctl_getPathName(pid_t pid, char *name)
 {
-    FILE *fp;
+    FILE *fp = NULL;
     char cmd[BUFLEN_256] = {'\0'};
+    char buff[BUFLEN_256] = {'\0'};
 
+    sprintf(cmd, "/proc/%d/status", pid);
+    if((fp = fopen(cmd, "r")) != NULL)
+    {
+        if(fgets(buff, BUFLEN_256 -1, fp) != NULL)
+            sscanf(buff, "%*s%s", name);
+        fclose(fp);
+    }
+
+    /*
     sprintf(cmd,"readlink /proc/%d/exe",pid);
     if((fp = popen(cmd,"r")) != NULL)
+    {
         if(fscanf(fp,"%s\n",name) != -1)
             ;
 
-    pclose(fp);
+        pclose(fp);
+    }
+    */
     return;
 }
 
