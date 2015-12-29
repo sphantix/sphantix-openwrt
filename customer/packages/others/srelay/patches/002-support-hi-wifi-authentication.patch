@@ -12,14 +12,15 @@ index 71bd59c..1b29127 100644
  
  .c.o:
 diff --git a/auth-pwd.c b/auth-pwd.c
-index 0bff2e6..dbce0f4 100644
+index 0bff2e6..765cec3 100644
 --- a/auth-pwd.c
 +++ b/auth-pwd.c
-@@ -39,11 +39,17 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+@@ -39,11 +39,18 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  #include <shadow.h>
  #include <crypt.h>
  #endif
 +/* Add by sphantix 2015/12/29 */
++#include <time.h>
 +#include "md5.h"
 +/* Add by sphantix End */
  
@@ -33,7 +34,7 @@ index 0bff2e6..dbce0f4 100644
  
  int auth_pwd_server(int s)
  {
-@@ -98,7 +104,10 @@ int auth_pwd_server(int s)
+@@ -98,7 +105,10 @@ int auth_pwd_server(int s)
    pass[len] = '\0';
  
    /* do authentication */
@@ -45,7 +46,7 @@ index 0bff2e6..dbce0f4 100644
  
    /* logging */
    len = sizeof(struct sockaddr_storage);
-@@ -257,3 +266,35 @@ int checkpasswd(char *user, char *pass)
+@@ -257,3 +267,44 @@ int checkpasswd(char *user, char *pass)
      return(-1);
    }
  }
@@ -54,6 +55,7 @@ index 0bff2e6..dbce0f4 100644
 +int hi_wifi_checkpasswd(char *user, char *pass)
 +{
 +    int i, j;
++    time_t curr_time, auth_time;
 +    char user_name[512] = {'\0'};
 +    char tmp[4] = {'\0'};
 +    unsigned char pwd[16];
@@ -76,7 +78,15 @@ index 0bff2e6..dbce0f4 100644
 +    }
 +
 +    if (memcmp((void *)&pwd[0], (void *)&mdContext.digest[0], 16) == 0)
-+        return 0;
++    {
++        auth_time = strtol(user, NULL, 10);
++        curr_time = time(NULL);
++
++        if (curr_time < auth_time)
++            return 0;
++        else
++            return -1;
++    }
 +    else
 +        return -1;
 +}
