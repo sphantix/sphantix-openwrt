@@ -48,7 +48,28 @@ endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
+uci set firewall.srelay=rule
+uci set firewall.srelay.name=Allow-Wan-Srelay
+uci set firewall.srelay.src=wan
+uci set firewall.srelay.target=ACCEPT
+uci set firewall.srelay.proto=tcpudp
+uci set firewall.srelay.dest_port=54216
+uci commit
+/etc/init.d/firewall restart
+
 /etc/init.d/srelay enable
+/etc/init.d/srelay restart
+exit 0
+endef
+
+define Package/$(PKG_NAME)/prerm
+#!/bin/sh
+/etc/init.d/srelay stop
+/etc/init.d/srelay disable
+
+uci delete firewall.srelay
+uci commit
+
 exit 0
 endef
 
