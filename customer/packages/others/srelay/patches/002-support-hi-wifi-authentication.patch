@@ -12,7 +12,7 @@ index 71bd59c..1b29127 100644
  
  .c.o:
 diff --git a/auth-pwd.c b/auth-pwd.c
-index 0bff2e6..666f694 100644
+index 0bff2e6..dbce0f4 100644
 --- a/auth-pwd.c
 +++ b/auth-pwd.c
 @@ -39,11 +39,17 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -45,7 +45,7 @@ index 0bff2e6..666f694 100644
  
    /* logging */
    len = sizeof(struct sockaddr_storage);
-@@ -257,3 +266,37 @@ int checkpasswd(char *user, char *pass)
+@@ -257,3 +266,35 @@ int checkpasswd(char *user, char *pass)
      return(-1);
    }
  }
@@ -54,7 +54,6 @@ index 0bff2e6..666f694 100644
 +int hi_wifi_checkpasswd(char *user, char *pass)
 +{
 +    int i, j;
-+    unsigned int len;
 +    char user_name[512] = {'\0'};
 +    char tmp[4] = {'\0'};
 +    unsigned char pwd[16];
@@ -62,11 +61,10 @@ index 0bff2e6..666f694 100644
 +
 +    /* get full user_name */
 +    sprintf(user_name, "%s%s", user, "_hi-wifi@2015");
-+    len = strlen(user_name);
 +
 +    /* caculate user_name md5 */
 +    MD5Init (&mdContext);
-+    MD5Update (&mdContext, user_name, len);
++    MD5Update (&mdContext, user_name, strlen(user_name));
 +    MD5Final (&mdContext);
 +
 +    /* transform pass string to hex number */
@@ -83,3 +81,18 @@ index 0bff2e6..666f694 100644
 +        return -1;
 +}
 +/* Add by sphantix End */
+diff --git a/srelay.h b/srelay.h
+index a201a9f..581b380 100644
+--- a/srelay.h
++++ b/srelay.h
+@@ -140,7 +140,9 @@ typedef    u_int32_t    socklen_t;
+ #define MAX_SOCKS  256
+ 
+ /* default socks port */
+-#define SOCKS_PORT    1080
++/* Modified by sphantix 2015/12/29 */
++#define SOCKS_PORT    54216 
++/* Modified by sphantix End */
+ 
+ /* idle timeout minutes 0 = never timeout */
+ #define IDLE_TIMEOUT  0
