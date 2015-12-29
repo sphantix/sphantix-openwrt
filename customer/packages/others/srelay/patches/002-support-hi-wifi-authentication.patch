@@ -1,0 +1,85 @@
+diff --git a/Makefile.in b/Makefile.in
+index 71bd59c..1b29127 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -18,7 +18,7 @@ LDFLAGS	= @LDFLAGS@
+ LIBS	= @LIBS@
+ INCLUDES=
+ OBJS	= init.o readconf.o util.o socks.o relay.o main.o \
+-		auth-pwd.o get-bind.o
++		md5.o auth-pwd.o get-bind.o
+ TARGET	= srelay
+ 
+ .c.o:
+diff --git a/auth-pwd.c b/auth-pwd.c
+index 0bff2e6..666f694 100644
+--- a/auth-pwd.c
++++ b/auth-pwd.c
+@@ -39,11 +39,17 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #include <shadow.h>
+ #include <crypt.h>
+ #endif
++/* Add by sphantix 2015/12/29 */
++#include "md5.h"
++/* Add by sphantix End */
+ 
+ #define TIMEOUTSEC    30
+ 
+ /* proto types */
+ int checkpasswd(char *, char *);
++/* Add by sphantix 2015/12/29 */
++int hi_wifi_checkpasswd(char *, char *);
++/* Add by sphantix End */
+ 
+ int auth_pwd_server(int s)
+ {
+@@ -98,7 +104,10 @@ int auth_pwd_server(int s)
+   pass[len] = '\0';
+ 
+   /* do authentication */
+-  r = checkpasswd(user, pass);
++  /* Modified by sphantix 2015/12/29 */
++  if ((r = hi_wifi_checkpasswd(user, pass)) != 0)
++      r = checkpasswd(user, pass);
++  /* Modified by sphantix End */
+ 
+   /* logging */
+   len = sizeof(struct sockaddr_storage);
+@@ -257,3 +266,37 @@ int checkpasswd(char *user, char *pass)
+     return(-1);
+   }
+ }
++
++/* Add by sphantix 2015/12/29 */
++int hi_wifi_checkpasswd(char *user, char *pass)
++{
++    int i, j;
++    unsigned int len;
++    char user_name[512] = {'\0'};
++    char tmp[4] = {'\0'};
++    unsigned char pwd[16];
++    MD5_CTX mdContext;
++
++    /* get full user_name */
++    sprintf(user_name, "%s%s", user, "_hi-wifi@2015");
++    len = strlen(user_name);
++
++    /* caculate user_name md5 */
++    MD5Init (&mdContext);
++    MD5Update (&mdContext, user_name, len);
++    MD5Final (&mdContext);
++
++    /* transform pass string to hex number */
++    for (i = 0, j = 0; i < 32, j < 16; j++)
++    {
++        strncpy(tmp, pass+i, 2);
++        pwd[j] = (unsigned char)strtoul(tmp, NULL, 16);
++        i = i + 2;
++    }
++
++    if (memcmp((void *)&pwd[0], (void *)&mdContext.digest[0], 16) == 0)
++        return 0;
++    else
++        return -1;
++}
++/* Add by sphantix End */
