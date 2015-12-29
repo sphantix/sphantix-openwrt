@@ -6,7 +6,7 @@ START=50
 SERVICE_USE_PID=1
 
 start() {
-	service_start /usr/bin/srelay -c /etc/srelay.conf -r -s 
+	service_start /usr/bin/srelay -c /etc/srelay.conf -r -s -a p 
 }
 
 stop() {
