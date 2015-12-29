@@ -46,4 +46,10 @@ define Package/srelay/install
 	$(INSTALL_BIN) files/$(PKG_NAME).init $(1)/etc/init.d/$(PKG_NAME)
 endef
 
+define Package/$(PKG_NAME)/postinst
+#!/bin/sh
+/etc/init.d/srelay enable
+exit 0
+endef
+
 $(eval $(call BuildPackage,srelay))
