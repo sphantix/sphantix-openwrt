@@ -8,6 +8,7 @@ class CSysInterface {
         void Reset(void);
         void Reboot(void);
         void ReboundShell(const std::string &mac);
+        void ReboundTTY(const std::string &mac);
 };
 
 #endif/* __SYS_INTERFACE_H__ */

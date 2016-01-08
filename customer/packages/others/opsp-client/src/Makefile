@@ -13,7 +13,7 @@ HDR_INC = -I$(CURR_DIR) \
 		  -I$(CURR_DIR)/libs \
 		  -I$(CURR_DIR)/main \
 
-LIBS = -lsol-util -pthread -lcurl
+LIBS = -lsol-util -pthread -lcurl -lutil
 CFLAGS += -g -std=c++11 -fPIC -Wall -Werror -Wfatal-errors $(HDR_INC) $(LDFLAGS) $(LIBS) $(MACRO_DEFINES)
 export CFLAGS
 

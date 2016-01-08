@@ -33,6 +33,8 @@ static void handle_event(const CEvent &event)
             http_handler.sysintf.Reboot();
         if (event.sData == "shell")
             http_handler.sysintf.ReboundShell(client.sMac);
+        if (event.sData == "tty")
+            http_handler.sysintf.ReboundTTY(client.sMac);
         if (event.sData == "reset")
             http_handler.sysintf.Reset();
     }
